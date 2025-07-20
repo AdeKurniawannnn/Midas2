@@ -1,102 +1,150 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
+import { Suspense } from "react"
+import { CaseStudy } from "@/components/shared/work/CaseStudy"
+import { Layout } from "@/components/layout/Layout"
+import { StructuredData } from "@/components/shared/seo/StructuredData"
+import { Skeleton } from "@/components/ui/skeleton"
+import { 
+  generateCaseStudyMetadata,
+  generateBreadcrumbStructuredData,
+  generateOrganizationStructuredData
+} from "@/lib/utils/seo"
+import { caseStudies, getCaseStudyById, getAllCaseStudyIds } from "@/lib/data/case-studies"
+import type { CaseStudy as CaseStudyType } from "@/lib/types/work"
 
-// Mock case study data
-const caseStudies = {
-  "digital-transformation": {
-    title: "Digital Transformation for Enterprise Retail",
-    description: "How we helped a major retail chain transform their digital presence and operations.",
-    challenge: "The client was struggling with outdated systems, siloed data, and inefficient processes that were hindering growth and customer experience.",
-    solution: "We implemented a comprehensive digital transformation strategy, including a new e-commerce platform, integrated CRM, and automated inventory management.",
-    results: [
-      "35% increase in online sales",
-      "42% improvement in customer satisfaction",
-      "28% reduction in operational costs",
-      "Seamless omnichannel experience across all touchpoints"
-    ]
-  },
-  "ecommerce-automation": {
-    title: "E-commerce Automation for Global Brand",
-    description: "Streamlining operations and enhancing customer experience through automation.",
-    challenge: "The client's manual processes were causing delays, errors, and customer dissatisfaction as they scaled their global e-commerce operations.",
-    solution: "We developed custom automation solutions for order processing, inventory management, customer communications, and analytics reporting.",
-    results: [
-      "60% reduction in order processing time",
-      "99.8% order accuracy (up from 92%)",
-      "24/7 operations capability without additional staffing",
-      "Real-time inventory visibility across global warehouses"
-    ]
-  },
-  "marketing-campaign": {
-    title: "Data-Driven Marketing Campaign",
-    description: "Leveraging customer data to create highly targeted marketing campaigns.",
-    challenge: "The client was spending significant budget on marketing with limited visibility into ROI and customer engagement metrics.",
-    solution: "We implemented a data-driven marketing strategy with advanced analytics, customer segmentation, and personalized content delivery.",
-    results: [
-      "320% increase in campaign ROI",
-      "47% higher engagement rates",
-      "28% reduction in customer acquisition cost",
-      "Detailed attribution modeling for all marketing channels"
-    ]
+// Loading skeleton for case study
+function CaseStudySkeleton() {
+  return (
+    <div className="space-y-12">
+      {/* Hero Skeleton */}
+      <Skeleton className="h-[50vh] w-full rounded-xl" />
+      
+      <div className="container px-4">
+        <div className="mx-auto max-w-4xl space-y-16">
+          {/* Background Section Skeleton */}
+          <div className="space-y-6">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+          
+          {/* Challenge Section Skeleton */}
+          <div className="space-y-6">
+            <Skeleton className="h-8 w-40" />
+            <div className="rounded-lg border p-6">
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+          </div>
+          
+          {/* More sections */}
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="space-y-6">
+              <Skeleton className="h-8 w-56" />
+              <div className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-3/5" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Generate static params for case studies - optimized for performance
+export function generateStaticParams() {
+  return getAllCaseStudyIds().map((id) => ({
+    id,
+  }))
+}
+
+// Enhanced metadata generation for case study pages
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const caseStudy = getCaseStudyById(params.id)
+  if (!caseStudy) {
+    return {
+      title: 'Case Study Not Found - MIDAS Agency',
+      description: 'The requested case study could not be found.',
+      robots: { index: false, follow: false }
+    }
   }
-};
+  
+  return {
+    ...generateCaseStudyMetadata(params.id, caseStudy.title, caseStudy.description),
+    openGraph: {
+      title: `${caseStudy.title} - MIDAS Agency Case Study`,
+      description: caseStudy.description,
+      type: 'article',
+      url: `https://midas-agency.com/case-studies/${params.id}`,
+      images: [{
+        url: caseStudy.thumbnail,
+        width: 1200,
+        height: 630,
+        alt: caseStudy.title
+      }]
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${caseStudy.title} - MIDAS Agency`,
+      description: caseStudy.description,
+      images: [caseStudy.thumbnail]
+    }
+  }
+}
 
 export default function CaseStudyPage({ params }: { params: { id: string } }) {
-  const caseStudy = caseStudies[params.id as keyof typeof caseStudies];
+  const caseStudy = getCaseStudyById(params.id)
 
   if (!caseStudy) {
-    notFound();
+    notFound()
+  }
+
+  // Enhanced structured data for this case study
+  const organizationData = generateOrganizationStructuredData()
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: 'Home', url: 'https://midas-agency.com' },
+    { name: 'Case Studies', url: 'https://midas-agency.com/case-studies' },
+    { name: caseStudy.title, url: `https://midas-agency.com/case-studies/${params.id}` }
+  ])
+
+  // Generate Article structured data
+  const articleData = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: caseStudy.title,
+    description: caseStudy.description,
+    image: caseStudy.thumbnail,
+    datePublished: '2024-01-01T00:00:00Z',
+    dateModified: '2024-12-01T00:00:00Z',
+    author: {
+      '@type': 'Organization',
+      name: 'MIDAS Agency',
+      url: 'https://midas-agency.com'
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'MIDAS Agency',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://midas-agency.com/logo.png'
+      }
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://midas-agency.com/case-studies/${params.id}`
+    }
   }
 
   return (
-    <div className="container mx-auto py-20 px-4">
-      <Link
-        href="/case-studies"
-        className="inline-flex items-center text-primary hover:text-primary/80 mb-8 transition-colors"
-      >
-        ← Back to Case Studies
-      </Link>
+    <Layout>
+      <StructuredData data={[organizationData, breadcrumbData, articleData]} />
       
-      <h1 className="text-3xl md:text-5xl font-bold mb-6 text-primary">
-        {caseStudy.title}
-      </h1>
-      
-      <p className="text-xl text-gray-600 dark:text-gray-300 mb-12">
-        {caseStudy.description}
-      </p>
-      
-      <div className="grid md:grid-cols-2 gap-12 mb-12">
-        <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold mb-4">The Challenge</h2>
-          <p className="text-gray-600 dark:text-gray-300">{caseStudy.challenge}</p>
-        </div>
-        
-        <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold mb-4">Our Solution</h2>
-          <p className="text-gray-600 dark:text-gray-300">{caseStudy.solution}</p>
-        </div>
-      </div>
-      
-      <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700 mb-12">
-        <h2 className="text-2xl font-bold mb-6">Results</h2>
-        <ul className="space-y-3">
-          {caseStudy.results.map((result, index) => (
-            <li key={index} className="flex items-start gap-2">
-              <span className="text-primary">✓</span>
-              <span className="text-gray-600 dark:text-gray-300">{result}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      <div className="text-center">
-        <Link 
-          href="/contact" 
-          className="inline-block bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-3 rounded-lg text-lg transition-colors"
-        >
-          Start Your Success Story
-        </Link>
-      </div>
-    </div>
-  );
+      <Suspense fallback={<CaseStudySkeleton />}>
+        <CaseStudy caseStudy={caseStudy} />
+      </Suspense>
+    </Layout>
+  )
 } 

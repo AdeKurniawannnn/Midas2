@@ -65,6 +65,7 @@ export const API = {
 // Navigation Constants
 export const NAVIGATION = {
   navItems: [
+    { label: 'Case Studies', href: '/case-studies' },
     { label: 'Portfolio', href: '#portfolio' },
     { label: 'Testimonials', href: '#testimonials' },
     { label: 'Contact', href: '#contact' },

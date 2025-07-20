@@ -9,6 +9,7 @@ import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-
 import { NavUser } from "./nav-user"
 import { useAuth } from "@/lib/providers/AuthProvider"
 import { services } from "@/lib/data/services"
+import { NAVIGATION } from "@/lib/constants"
 import { useSpring, animated } from '@react-spring/web'
 
 export function Navbar() {
@@ -65,11 +66,7 @@ export function Navbar() {
     }
   }
   
-  const navItems = [
-    { label: "Portfolio", href: "#portfolio" },
-    { label: "Testimonials", href: "#testimonials" },
-    { label: "Contact", href: "#contact" },
-  ]
+  const navItems = NAVIGATION.navItems
   
   return (
     <motion.header 

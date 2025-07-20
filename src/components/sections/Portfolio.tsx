@@ -5,8 +5,10 @@ import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
-import { useSpring, animated } from '@react-spring/web'
-import { useState } from 'react'
+import { motion } from "framer-motion"
+import { useInView } from "react-intersection-observer"
+import { useState, useEffect, useMemo } from 'react'
+import { useViewportSizing } from "@/hooks/useViewportSizing"
 
 const portfolioItems = [
   {
@@ -40,82 +42,171 @@ const portfolioItems = [
 
 export function Portfolio() {
   const [hovered, setHovered] = useState(false)
-
-  const buttonSpring = useSpring({
-    transform: hovered ? 'scale(1.05)' : 'scale(1)',
-    config: { stiffness: 210, damping: 20 }
+  const [reducedMotion, setReducedMotion] = useState(false)
+  const viewport = useViewportSizing()
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
   })
-
-  const arrowSpring = useSpring({
-    x: hovered ? 5 : 0,
-    config: { stiffness: 120, damping: 14 }
-  })
+  
+  // Check for reduced motion preference
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReducedMotion(mediaQuery.matches)
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setReducedMotion(e.matches)
+    }
+    
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+  
+  // Memoized animation variants
+  const containerVariants = useMemo(() => ({
+    hidden: { opacity: 0, y: reducedMotion ? 0 : 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: reducedMotion ? 0 : 0.6,
+        staggerChildren: reducedMotion ? 0 : 0.1
+      }
+    }
+  }), [reducedMotion])
+  
+  const itemVariants = useMemo(() => ({
+    hidden: { opacity: 0, y: reducedMotion ? 0 : 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: reducedMotion ? 0 : 0.4
+      }
+    }
+  }), [reducedMotion])
 
   return (
-    <section id="portfolio" className="py-20">
+    <section 
+      id="portfolio" 
+      className={viewport.sectionSpacing}
+      aria-label="Portfolio showcase section"
+      ref={ref}
+    >
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Work</h2>
-          <p className="text-xl text-gray-600">
-            Discover how we’ve helped businesses achieve their digital goals
+        <motion.div 
+          className={`text-center max-w-3xl mx-auto ${viewport.height < 700 ? 'mb-8' : 'mb-12 md:mb-16'}`}
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: reducedMotion ? 0 : 20 }}
+          transition={{ duration: reducedMotion ? 0 : 0.6 }}
+        >
+          <h2 
+            id="portfolio-heading"
+            className={`${viewport.width >= 1600 ? 'text-3xl md:text-4xl lg:text-5xl' : 'text-3xl md:text-4xl'} font-bold mb-4`}
+          >
+            Our Work
+          </h2>
+          <p className={`${viewport.width >= 1600 ? 'text-xl sm:text-2xl' : 'text-xl'} text-gray-600`}>
+            Discover how we&apos;ve helped businesses achieve their digital goals
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {portfolioItems.map((item) => (
-            <Card key={item.title} className="overflow-hidden">
-              <div className="aspect-video bg-gray-100 relative">
-                <Image 
-                  src={item.image} 
-                  alt={`${item.title} case study thumbnail`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
+        <motion.div 
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${viewport.height < 700 ? 'gap-4 md:gap-6' : 'gap-6 md:gap-8'}`}
+          variants={containerVariants}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          role="list"
+          aria-labelledby="portfolio-heading"
+        >
+          {portfolioItems.map((item, index) => (
+            <motion.div
+              key={item.title}
+              variants={itemVariants}
+              role="listitem"
+            >
+              <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300">
+                <div className="aspect-video bg-gray-100 relative group">
+                  <Image 
+                    src={item.image} 
+                    alt={`${item.title} case study thumbnail for ${item.client}`}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={index === 0}
+                    quality={index === 0 ? 90 : 75}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    placeholder="blur"
+                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                </div>
               <CardHeader>
                 <CardTitle>{item.title}</CardTitle>
                 <CardDescription className="font-medium text-primary">
                   {item.client}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600">{item.description}</p>
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Key Results:</h4>
-                  <ul className="list-disc list-inside text-gray-600">
-                    {item.results.map((result) => (
-                      <li key={result}>{result}</li>
-                    ))}
-                  </ul>
-                </div>
-                <Button variant="ghost" className="group" asChild>
-                  <Link href={`/case-studies/${item.id}`}>
-                    View Case Study{" "}
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                <CardContent className="space-y-4 flex-1">
+                  <p className="text-gray-600">{item.description}</p>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold">Key Results:</h4>
+                    <ul className="list-disc list-inside text-gray-600">
+                      {item.results.map((result) => (
+                        <li key={result}>{result}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="pt-4">
+                    <Button 
+                      variant="ghost" 
+                      className="group" 
+                      asChild
+                      aria-label={`View detailed case study for ${item.title} project`}
+                    >
+                      <Link href={`/case-studies/${item.id}`}>
+                        View Case Study{" "}
+                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="text-center mt-12">
-          <animated.div
-            style={buttonSpring}
+        <motion.div 
+          className="text-center mt-12"
+          initial={{ opacity: 0, y: reducedMotion ? 0 : 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: reducedMotion ? 0 : 20 }}
+          transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : 0.3 }}
+        >
+          <motion.div
+            whileHover={reducedMotion ? {} : { scale: 1.05 }}
+            whileTap={reducedMotion ? {} : { scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 210, damping: 20 }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
           >
-            <Button size="lg" asChild>
-              <Link href="/work">
+            <Button 
+              size="lg" 
+              asChild
+              aria-label="View all case studies and portfolio projects"
+            >
+              <Link href="/case-studies">
                 View All Case Studies
-                <animated.span style={arrowSpring}>
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </animated.span>
+                <motion.span
+                  animate={hovered && !reducedMotion ? { x: 5 } : { x: 0 }}
+                  transition={{ type: "spring", stiffness: 120, damping: 14 }}
+                  className="inline-block"
+                >
+                  <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                </motion.span>
               </Link>
             </Button>
-          </animated.div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )

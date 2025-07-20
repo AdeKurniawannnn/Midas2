@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CaseStudy as CaseStudyType } from '@/lib/types/work'
@@ -11,9 +11,78 @@ import { ResponsiveImage, BackgroundImage } from '@/components/shared/image'
 interface CaseStudyProps {
   caseStudy: CaseStudyType
   isPreview?: boolean
+  priority?: boolean // For image loading priority
 }
 
-export function CaseStudy({ caseStudy, isPreview = false }: CaseStudyProps) {
+// Optimized image path resolver
+const getOptimizedImagePath = (imageId: string, thumbnail: string): string => {
+  const imageMap: Record<string, string> = {
+    'branding': '/images/branding.jpg',
+    'onlineMarketplace': '/images/online marketplace.jpg',
+    'videoProduction': '/images/video production.jpg',
+    'digital-transformation': '/images/case-studies/digital-transformation-thumb.jpg',
+    'ecommerce-automation': '/images/case-studies/ecommerce-automation-thumb.jpg',
+    'marketing-campaign': '/images/case-studies/marketing-campaign-thumb.jpg'
+  }
+  
+  return imageMap[imageId] || thumbnail
+}
+
+// Memoized preview component for better performance
+const CaseStudyPreview = memo(({ caseStudy, priority = false }: { caseStudy: CaseStudyType, priority?: boolean }) => {
+  const displayCategory = caseStudy.category
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+
+  const imagePath = getOptimizedImagePath(caseStudy.imageId || '', caseStudy.thumbnail)
+
+  return (
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div className="relative h-60 w-full overflow-hidden">
+        <ResponsiveImage
+          src={imagePath}
+          alt={caseStudy.title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={priority}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <Badge className="absolute left-4 top-4 bg-primary/90 backdrop-blur-sm">
+          {displayCategory}
+        </Badge>
+      </div>
+      <CardContent className="p-6">
+        <h3 className="mb-2 text-xl font-bold group-hover:text-primary transition-colors line-clamp-2">
+          {caseStudy.title}
+        </h3>
+        <p className="mb-4 text-muted-foreground line-clamp-2">
+          {caseStudy.description}
+        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex gap-3">
+            {caseStudy.results.slice(0, 2).map((result, index) => (
+              <div key={index} className="text-center">
+                <div className="text-lg font-bold text-primary">{result.value}</div>
+                <div className="text-xs text-muted-foreground line-clamp-1">{result.metric}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <Button asChild variant="outline" className="gap-2 w-full group-hover:bg-primary group-hover:text-white transition-all">
+          <Link href={`/case-studies/${caseStudy.id}`}>
+            View Case Study <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+})
+
+CaseStudyPreview.displayName = 'CaseStudyPreview'
+
+export const CaseStudy = memo(({ caseStudy, isPreview = false, priority = false }: CaseStudyProps & { priority?: boolean }) => {
   const {
     id,
     title,
@@ -39,61 +108,19 @@ export function CaseStudy({ caseStudy, isPreview = false }: CaseStudyProps) {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 
+  // Early return for preview mode with optimized preview component
   if (isPreview) {
-    console.log('CaseStudy Preview:', { title, imageId, thumbnail });
-    
-    // Map imageId to actual image path
-    let imagePath = thumbnail;
-    if (imageId === 'branding') {
-      imagePath = '/images/branding.jpg';
-    } else if (imageId === 'onlineMarketplace') {
-      imagePath = '/images/online marketplace.jpg';
-    } else if (imageId === 'videoProduction') {
-      imagePath = '/images/video production.jpg';
-    }
-    
-    return (
-      <Card className="overflow-hidden transition-all hover:shadow-lg">
-        <div className="relative h-60 w-full">
-          <ResponsiveImage
-            src={imagePath}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <Badge className="absolute left-4 top-4 bg-primary">{displayCategory}</Badge>
-        </div>
-        <CardContent className="p-6">
-          <h3 className="mb-2 text-xl font-bold">{title}</h3>
-          <p className="mb-4 text-muted-foreground">{description}</p>
-          <Button asChild variant="outline" className="gap-2">
-            <Link href={`/case-studies/${id}`}>
-              View Case Study <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-    )
+    return <CaseStudyPreview caseStudy={caseStudy} priority={priority} />
   }
+
+  const imagePath = getOptimizedImagePath(imageId, thumbnail)
 
   return (
     <div className="space-y-12">
       {/* Hero Section */}
       <section className="relative flex min-h-[50vh] w-full items-center overflow-hidden rounded-xl">
         <BackgroundImage
-          src={(() => {
-            // Map imageId to actual image path
-            if (imageId === 'branding') {
-              return '/images/branding.jpg';
-            } else if (imageId === 'onlineMarketplace') {
-              return '/images/online marketplace.jpg';
-            } else if (imageId === 'videoProduction') {
-              return '/images/video production.jpg';
-            }
-            return thumbnail;
-          })()}
+          src={imagePath}
           alt={title}
           overlay
           overlayColor="black"
@@ -234,4 +261,8 @@ export function CaseStudy({ caseStudy, isPreview = false }: CaseStudyProps) {
       </div>
     </div>
   )
-} 
+})
+
+CaseStudy.displayName = 'CaseStudy'
+
+export { CaseStudyPreview }

@@ -7,6 +7,13 @@ import { ServiceHeader } from "@/components/features/services/ServiceHeader"
 import { ServiceFeatures } from "@/components/features/services/ServiceFeatures"
 import { ServiceBenefits } from "@/components/features/services/ServiceBenefits"
 import { ServiceProcess } from "@/components/features/services/ServiceProcess"
+import { StructuredData } from "@/components/shared/seo/StructuredData"
+import { 
+  generateServiceMetadata,
+  generateServiceStructuredData,
+  generateBreadcrumbStructuredData,
+  generateOrganizationStructuredData
+} from "@/lib/utils/seo"
 
 // Force dynamic rendering untuk mengatasi masalah environment variables
 export const dynamic = 'force-dynamic'
@@ -17,12 +24,26 @@ export function generateStaticParams() {
   }))
 }
 
+// Generate metadata for service pages
+export async function generateMetadata({ params }: ServicePageProps) {
+  return generateServiceMetadata(params.slug)
+}
+
 export default function ServicePage({ params }: ServicePageProps) {
   const service = services[params.slug]
 
   if (!service) {
     notFound()
   }
+
+  // Generate structured data for this service
+  const serviceStructuredData = generateServiceStructuredData(params.slug)
+  const organizationData = generateOrganizationStructuredData()
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: 'Home', url: 'https://midas-agency.com' },
+    { name: 'Services', url: 'https://midas-agency.com/services' },
+    { name: service.title, url: `https://midas-agency.com/services/${params.slug}` }
+  ])
 
   // Get client component for this service
   const ClientComponent = getServiceClientComponent(params.slug)
@@ -32,20 +53,28 @@ export default function ServicePage({ params }: ServicePageProps) {
     // Ensure we're only passing serializable data to client component
     const serializedService = serializeServiceForClient(service)
     
-    return <ClientComponent service={serializedService} />
+    return (
+      <>
+        <StructuredData data={[serviceStructuredData, organizationData, breadcrumbData].filter(Boolean)} />
+        <ClientComponent service={serializedService} />
+      </>
+    )
   }
 
   // Otherwise, fall back to the default static page
   return (
-    <div className="container mx-auto py-20 px-4">
-      <ServiceHeader service={service} />
-      
-      <div className="grid md:grid-cols-2 gap-8 mt-12">
-        {service.features && <ServiceFeatures features={service.features} />}
-        {service.benefits && <ServiceBenefits benefits={service.benefits} />}
+    <>
+      <StructuredData data={[serviceStructuredData, organizationData, breadcrumbData].filter(Boolean)} />
+      <div className="container mx-auto py-20 px-4">
+        <ServiceHeader service={service} />
+        
+        <div className="grid md:grid-cols-2 gap-8 mt-12">
+          {service.features && <ServiceFeatures features={service.features} />}
+          {service.benefits && <ServiceBenefits benefits={service.benefits} />}
+        </div>
+        
+        {service.process && <ServiceProcess process={service.process} />}
       </div>
-      
-      {service.process && <ServiceProcess process={service.process} />}
-    </div>
+    </>
   )
 } 

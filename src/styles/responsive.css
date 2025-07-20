@@ -1,0 +1,144 @@
+/* Responsive utilities for better scaling */
+
+/* Dynamic viewport units */
+:root {
+  --vh: 1vh;
+  --vw: 1vw;
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+}
+
+/* Dynamic viewport height classes */
+.min-h-screen-dynamic {
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+.h-screen-dynamic {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Safe area aware heights */
+.min-h-screen-safe {
+  min-height: calc(
+    var(--vh, 1vh) * 100 - 
+    var(--safe-area-inset-top, 0px) - 
+    var(--safe-area-inset-bottom, 0px)
+  );
+}
+
+/* Responsive section spacing system */
+.section-spacing-sm { padding-top: 3rem; padding-bottom: 3rem; }
+.section-spacing-md { padding-top: 4rem; padding-bottom: 4rem; }
+.section-spacing-lg { padding-top: 5rem; padding-bottom: 5rem; }
+.section-spacing-xl { padding-top: 6rem; padding-bottom: 6rem; }
+.section-spacing-2xl { padding-top: 7rem; padding-bottom: 7rem; }
+
+@media (min-width: 640px) {
+  .section-spacing-sm { padding-top: 4rem; padding-bottom: 4rem; }
+  .section-spacing-md { padding-top: 5rem; padding-bottom: 5rem; }
+  .section-spacing-lg { padding-top: 6rem; padding-bottom: 6rem; }
+  .section-spacing-xl { padding-top: 8rem; padding-bottom: 8rem; }
+  .section-spacing-2xl { padding-top: 10rem; padding-bottom: 10rem; }
+}
+
+@media (min-width: 768px) {
+  .section-spacing-sm { padding-top: 5rem; padding-bottom: 5rem; }
+  .section-spacing-md { padding-top: 6rem; padding-bottom: 6rem; }
+  .section-spacing-lg { padding-top: 8rem; padding-bottom: 8rem; }
+  .section-spacing-xl { padding-top: 10rem; padding-bottom: 10rem; }
+  .section-spacing-2xl { padding-top: 12rem; padding-bottom: 12rem; }
+}
+
+@media (min-width: 1024px) {
+  .section-spacing-sm { padding-top: 6rem; padding-bottom: 6rem; }
+  .section-spacing-md { padding-top: 8rem; padding-bottom: 8rem; }
+  .section-spacing-lg { padding-top: 10rem; padding-bottom: 10rem; }
+  .section-spacing-xl { padding-top: 12rem; padding-bottom: 12rem; }
+  .section-spacing-2xl { padding-top: 14rem; padding-bottom: 14rem; }
+}
+
+/* Fluid typography system */
+.text-fluid-sm {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.text-fluid-base {
+  font-size: clamp(1rem, 2.5vw, 1.125rem);
+}
+
+.text-fluid-lg {
+  font-size: clamp(1.125rem, 3vw, 1.25rem);
+}
+
+.text-fluid-xl {
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+}
+
+.text-fluid-2xl {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+.text-fluid-3xl {
+  font-size: clamp(1.875rem, 6vw, 2.5rem);
+}
+
+.text-fluid-4xl {
+  font-size: clamp(2.25rem, 7vw, 3rem);
+}
+
+.text-fluid-5xl {
+  font-size: clamp(3rem, 8vw, 4rem);
+}
+
+.text-fluid-6xl {
+  font-size: clamp(3.75rem, 10vw, 5rem);
+}
+
+/* Container queries support */
+@container (min-width: 320px) {
+  .container-responsive {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@container (min-width: 640px) {
+  .container-responsive {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@container (min-width: 1024px) {
+  .container-responsive {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+/* Aspect ratio utilities */
+.aspect-video-responsive {
+  aspect-ratio: 16 / 9;
+}
+
+@media (max-width: 640px) {
+  .aspect-video-responsive {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* Grid responsive utilities */
+.grid-responsive-auto {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+
+.grid-responsive-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+/* Smooth scrolling with reduced motion support */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

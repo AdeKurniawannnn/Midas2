@@ -37,7 +37,7 @@ export function WorkCard({ card }: WorkCardProps) {
         <h3 className="mb-2 text-xl font-bold">{title}</h3>
         <p className="mb-4 text-muted-foreground">{description}</p>
         <Button asChild variant="outline" className="gap-2">
-          <Link href={`/work#${id}`}>
+          <Link href={`/case-studies#${id}`}>
             Learn More <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>

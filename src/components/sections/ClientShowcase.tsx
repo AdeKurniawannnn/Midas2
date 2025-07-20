@@ -53,31 +53,31 @@ const stats = [
 function AnimatedCounter({ value, prefix = "", suffix = "" }: { value: number, prefix?: string, suffix?: string }) {
   const [count, setCount] = useState(0)
   const [ref, inView] = useInView({
-    triggerOnce: false,
+    triggerOnce: true,
     threshold: 0.3,
   })
 
   useEffect(() => {
     if (inView) {
-      const duration = 2000 // animation duration in ms
-      const frameDuration = 1000 / 60 // 60fps
-      const totalFrames = Math.round(duration / frameDuration)
+      const duration = 1500 // Reduced from 2000ms for better performance
+      const startTime = performance.now()
       
-      let frame = 0
-      const counter = setInterval(() => {
-        frame++
-        const progress = frame / totalFrames
-        // Use easeOutQuad easing function for natural animation
-        const easeProgress = progress * (2 - progress)
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        
+        // Use easeOutCubic for smoother animation
+        const easeProgress = 1 - Math.pow(1 - progress, 3)
         setCount(Math.floor(easeProgress * value))
         
-        if (frame === totalFrames) {
-          clearInterval(counter)
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        } else {
           setCount(value)
         }
-      }, frameDuration)
+      }
       
-      return () => clearInterval(counter)
+      requestAnimationFrame(animate)
     }
   }, [inView, value])
 
@@ -129,48 +129,27 @@ export function ClientShowcase() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-16"
         >
           <div className="relative overflow-hidden w-full">
-            <div className="flex animate-scroll hover:[animation-play-state:paused]">
-              {/* First set of client logos */}
-              <div className="flex items-center justify-around min-w-full gap-8 px-4">
-                {clients.map((client) => (
-                  <motion.div 
-                    key={client.id}
-                    className="h-24 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 mx-2 flex-shrink-0 w-40 sm:w-44 md:w-48"
-                    whileHover={{ 
-                      y: -5, 
-                      boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.2)",
-                      borderColor: "var(--primary)"
-                    }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="text-3xl font-bold text-primary">{client.logo}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 ml-2">{client.name}</div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              {/* Duplicated set for seamless looping */}
-              <div className="flex items-center justify-around min-w-full gap-8 px-4">
-                {clients.map((client) => (
-                  <motion.div 
-                    key={`dup-${client.id}`}
-                    className="h-24 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 mx-2 flex-shrink-0 w-40 sm:w-44 md:w-48"
-                    whileHover={{ 
-                      y: -5, 
-                      boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.2)",
-                      borderColor: "var(--primary)"
-                    }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="text-3xl font-bold text-primary">{client.logo}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 ml-2">{client.name}</div>
-                  </motion.div>
-                ))}
-              </div>
+            <div className="flex animate-scroll hover:[animation-play-state:paused] will-change-transform">
+              {/* Optimized client logos with reduced DOM */}
+              {[...clients, ...clients].map((client, index) => (
+                <motion.div 
+                  key={`${client.id}-${index}`}
+                  className="h-20 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 mx-2 flex-shrink-0 w-36 sm:w-40 md:w-44"
+                  whileHover={{ 
+                    y: -3, 
+                    boxShadow: "0 8px 25px -8px rgba(0, 0, 0, 0.15)",
+                    borderColor: "var(--primary)"
+                  }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                >
+                  <div className="text-2xl font-bold text-primary">{client.logo}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 ml-1.5 truncate">{client.name}</div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </motion.div>
