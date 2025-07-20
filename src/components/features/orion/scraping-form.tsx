@@ -129,6 +129,9 @@ export function ScrapingForm({ scrapingType, onSuccess }: ScrapingFormProps) {
     setErrors([])
     setProgress(0)
     setCurrentStep("Preparing to start scraping...")
+    setTotalItems(parseInt(maxResults))
+    setProcessedItems(0)
+    setEstimatedTime(null)
     
     try {
       const response = await fetch('/api/scraping', {
@@ -247,11 +250,11 @@ export function ScrapingForm({ scrapingType, onSuccess }: ScrapingFormProps) {
       )}
 
       {/* Progress Section */}
-      {isActive && (
+      {(isLoading || isActive) && (
         <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {status === 'processing' && <Spinner size="sm" />}
+              {(status === 'initializing' || status === 'processing') && <Spinner size="sm" />}
               {status === 'paused' && <Pause className="h-4 w-4 text-yellow-500" />}
               {status === 'completed' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
               {status === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}

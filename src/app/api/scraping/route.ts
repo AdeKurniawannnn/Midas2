@@ -32,8 +32,25 @@ export async function POST(request: Request) {
       )
     }
 
-    // URL webhook
-    const testWebhookUrl = 'https://tequisa-n8n.217.15.164.63.sslip.io/webhook-test/Web_Midas';
+    // Validasi scrapingType
+    const allowedScrapingTypes = ['instagram', 'google-maps'];
+    if (body.scrapingType && !allowedScrapingTypes.includes(body.scrapingType)) {
+      return NextResponse.json(
+        { error: 'Scraping type tidak valid. Gunakan: instagram atau google-maps' },
+        { status: 400 }
+      )
+    }
+
+    // URL webhook berdasarkan scrapingType
+    const scrapingType = body.scrapingType || 'instagram';
+    let testWebhookUrl: string;
+    
+    if (scrapingType === 'google-maps') {
+      testWebhookUrl = 'https://tequisa-n8n.217.15.164.63.sslip.io/webhook-test/Web_Midas_GoogleMaps';
+    } else {
+      // Default ke Instagram webhook
+      testWebhookUrl = 'https://tequisa-n8n.217.15.164.63.sslip.io/webhook/Web_Midas';
+    }
     
     if (!testWebhookUrl.includes('Web_Midas') && !testWebhookUrl.includes('webhook.site')) {
       return NextResponse.json(
@@ -43,6 +60,8 @@ export async function POST(request: Request) {
     }
     
     console.log('Menggunakan URL webhook:', testWebhookUrl)
+    console.log('Scraping type:', scrapingType)
+    console.log('Coordinates:', body.coordinates || 'tidak ada')
 
     // Gunakan email dan userid dari body request
     const userData = {
@@ -56,6 +75,10 @@ export async function POST(request: Request) {
       maxResults: body.maxResults || 1,
       timestamp: new Date().toISOString(),
       source: 'MyDAS',
+      scrapingType: scrapingType,
+      ...(scrapingType === 'google-maps' && body.coordinates && {
+        coordinates: body.coordinates
+      }),
       ...userData // Tambahkan user data jika ada
     }
     
