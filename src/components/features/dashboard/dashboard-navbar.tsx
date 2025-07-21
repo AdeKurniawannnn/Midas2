@@ -17,7 +17,8 @@ import {
   SettingsIcon,
   HomeIcon,
   BellIcon,
-  TrendingUpIcon
+  TrendingUpIcon,
+  HashIcon
 } from "lucide-react"
 import { ThemeToggle } from "@/components/shared/theme-toggle"
 
@@ -43,6 +44,7 @@ export function DashboardNavbar({ currentPage = "Dashboard" }: DashboardNavbarPr
   const navigationItems = [
     // { name: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
     { name: "Orion", href: "/orion", icon: MegaphoneIcon },
+    { name: "Keywords", href: "/keywords", icon: HashIcon },
     { name: "KOL", href: "/kol", icon: UsersIcon },
   ]
 

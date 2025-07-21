@@ -50,7 +50,7 @@ export default function UnifiedDashboardLayout({
 
   // Complex layout (Orion/KOL style) - with sidebar
   return (
-    <div className="flex-1 bg-background">
+    <div className="flex-1 bg-background h-screen">
       <DashboardNavbar currentPage={currentPage} />
       <div className="flex h-full w-full">
         <SidebarProvider>

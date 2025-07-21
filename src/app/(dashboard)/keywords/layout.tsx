@@ -1,18 +1,16 @@
-import { Metadata } from "next"
+"use client"
 
-export const metadata: Metadata = {
-  title: "Keywords Management | MIDAS Orion",
-  description: "Manage your keywords for Instagram and Google Maps scraping automation",
+import { ReactNode } from "react"
+import UnifiedDashboardLayout from "@/components/features/dashboard/unified-dashboard-layout"
+
+interface DashboardPageProps {
+  children: ReactNode
 }
 
-export default function KeywordsLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function KeywordsLayout({ children }: DashboardPageProps) {
   return (
-    <div className="keywords-layout">
+    <UnifiedDashboardLayout currentPage="Keywords" showSidebar={true} showBreadcrumbs={true}>
       {children}
-    </div>
+    </UnifiedDashboardLayout>
   )
 }
