@@ -3,6 +3,7 @@
 // Advanced interactive elements for case studies
 import React, { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -123,10 +124,11 @@ export const InteractiveCaseCard: React.FC<{
     >
       <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500">
         <div className="relative h-64 overflow-hidden">
-          <img 
+          <Image 
             src={caseStudy.thumbnail}
             alt={caseStudy.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
           
           {/* Overlay with gradient */}

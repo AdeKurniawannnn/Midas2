@@ -3,6 +3,7 @@
 // Enhanced case studies grid with advanced frontend features
 import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -236,10 +237,11 @@ export const EnhancedCaseStudiesGrid: React.FC<EnhancedGridProps> = ({
                   // List view layout
                   <div className="flex gap-6 p-6 bg-background border rounded-xl hover:shadow-lg transition-all duration-300">
                     <div className="relative w-48 h-32 flex-shrink-0 overflow-hidden rounded-lg">
-                      <img 
+                      <Image 
                         src={study.thumbnail} 
                         alt={study.title}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
                       />
                     </div>
                     <div className="flex-1 space-y-3">
