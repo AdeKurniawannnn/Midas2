@@ -185,8 +185,9 @@ export const colorContrast = {
 
 // Motion preferences utilities
 export const motionPreferences = {
-  // Check if user prefers reduced motion
+  // Check if user prefers reduced motion (safe for SSR)
   prefersReducedMotion: (): boolean => {
+    if (typeof window === 'undefined') return false
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches
   },
 

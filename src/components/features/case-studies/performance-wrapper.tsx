@@ -153,32 +153,62 @@ const PerformanceAwareComponentSelector: React.FC<{
   viewMode: 'optimized' | 'enhanced' | 'touch'
   devicePerformance: 'high' | 'medium' | 'low'
 }> = memo(({ caseStudies, viewMode, devicePerformance }) => {
-  // Select component based on performance level
-  const ComponentToRender = useMemo(() => {
+  // Select components based on performance level and view mode
+  const { GridComponent, CardComponent } = useMemo(() => {
     if (devicePerformance === 'low') {
       // Use basic components for low-performance devices
-      return lazy(() => import('./performance-optimized').then(module => ({
-        default: module.default.PerformanceOptimizedCaseStudies
-      })))
+      return {
+        GridComponent: lazy(() => import('./performance-optimized').then(module => ({
+          default: module.default.PerformanceOptimizedCaseStudies
+        }))),
+        CardComponent: null
+      }
     }
     
     switch (viewMode) {
       case 'optimized':
-        return LazyPerformanceOptimizedGrid
+        return {
+          GridComponent: LazyPerformanceOptimizedGrid,
+          CardComponent: null
+        }
       case 'touch':
-        return LazyTouchInteractiveCard
+        return {
+          GridComponent: null,
+          CardComponent: LazyTouchInteractiveCard
+        }
       case 'enhanced':
       default:
-        return LazyEnhancedGrid
+        return {
+          GridComponent: LazyEnhancedGrid,
+          CardComponent: null
+        }
     }
   }, [viewMode, devicePerformance])
   
   return (
     <Suspense fallback={<AdaptiveLoadingSkeleton variant="card" />}>
-      <ComponentToRender 
-        caseStudies={caseStudies}
-        enableLazyLoading={devicePerformance !== 'high'}
-      />
+      {CardComponent ? (
+        // Touch mode renders individual cards
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {caseStudies.map((caseStudy) => (
+            <CardComponent 
+              key={caseStudy.id}
+              caseStudy={caseStudy}
+              onFavorite={(id) => console.log('Favorite:', id)}
+              onShare={(id) => console.log('Share:', id)}
+              onView={(id) => console.log('View:', id)}
+            />
+          ))}
+        </div>
+      ) : GridComponent ? (
+        // Other modes render grid components
+        <GridComponent 
+          caseStudies={caseStudies}
+          enableLazyLoading={devicePerformance !== 'high'}
+        />
+      ) : (
+        <div>No component available for this view mode</div>
+      )}
     </Suspense>
   )
 })

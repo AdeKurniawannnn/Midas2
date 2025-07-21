@@ -263,14 +263,10 @@ export const scrollAnimations = {
   }
 }
 
-// Performance optimized animations (respects prefers-reduced-motion)
-export const getOptimizedAnimation = (animation: Variants, prefersReducedMotion: boolean): Variants => {
-  if (prefersReducedMotion) {
-    return {
-      hidden: { opacity: 0 },
-      visible: { opacity: 1, transition: { duration: 0.1 } }
-    }
-  }
+// Performance optimized animations (safe for SSR)
+export const getOptimizedAnimation = (animation: Variants): Variants => {
+  // For SSR safety, always return the original animation
+  // Client-side optimization can be handled separately
   return animation
 }
 

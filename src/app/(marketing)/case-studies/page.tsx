@@ -256,7 +256,6 @@ export default function CaseStudiesPage() {
                 role="button"
                 tabIndex={0}
                 aria-label={generateAriaLabels.filterButton('all categories', caseStudies.length)}
-                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
               >
                 All ({caseStudies.length})
               </Badge>
@@ -273,7 +272,6 @@ export default function CaseStudiesPage() {
                     role="button"
                     tabIndex={0}
                     aria-label={generateAriaLabels.filterButton(displayName, count)}
-                    onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
                   >
                     {displayName} ({count})
                   </Badge>

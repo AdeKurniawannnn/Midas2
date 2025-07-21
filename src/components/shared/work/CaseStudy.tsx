@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
 import { CaseStudy as CaseStudyType } from '@/lib/types/work'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ interface CaseStudyProps {
 }
 
 // Optimized image path resolver
-const getOptimizedImagePath = (imageId: string, thumbnail: string): string => {
+const getOptimizedImagePath = (imageId: string, thumbnail: string | StaticImageData): string => {
   const imageMap: Record<string, string> = {
     'branding': '/images/branding.jpg',
     'onlineMarketplace': '/images/online marketplace.jpg',
@@ -25,7 +25,10 @@ const getOptimizedImagePath = (imageId: string, thumbnail: string): string => {
     'marketing-campaign': '/images/case-studies/marketing-campaign-thumb.jpg'
   }
   
-  return imageMap[imageId] || thumbnail
+  // If thumbnail is StaticImageData, use its src property
+  const thumbnailPath = typeof thumbnail === 'string' ? thumbnail : thumbnail.src
+  
+  return imageMap[imageId] || thumbnailPath
 }
 
 // Memoized preview component for better performance
