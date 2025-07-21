@@ -12,7 +12,6 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   experimental: {
-    optimizeCss: true,
     scrollRestoration: true,
   },
   // Enhanced webpack optimization for animation libraries
