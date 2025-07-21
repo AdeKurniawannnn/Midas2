@@ -364,8 +364,7 @@ export const useTouchGestures = () => {
 export const useViewportAnimation = (threshold: number = 0.3) => {
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { 
-    once: true, 
-    margin: `-${threshold * 100}%` 
+    once: true
   })
 
   return { ref, isInView }

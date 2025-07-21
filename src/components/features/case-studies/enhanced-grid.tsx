@@ -1,1 +1,323 @@
-'use client'\n\n// Enhanced case studies grid with advanced frontend features\nimport React, { useState, useMemo } from 'react'\nimport { motion, AnimatePresence } from 'framer-motion'\nimport { Button } from '@/components/ui/button'\nimport { Badge } from '@/components/ui/badge'\nimport { Input } from '@/components/ui/input'\nimport { \n  Search, \n  Filter, \n  Grid3X3, \n  List, \n  SortAsc, \n  SortDesc,\n  Eye,\n  Heart,\n  Share2\n} from 'lucide-react'\nimport { CaseStudy } from '@/components/shared/work/CaseStudy'\nimport { caseStudies } from '@/lib/data/case-studies'\nimport { \n  containerAnimations, \n  cardAnimations, \n  filterAnimations \n} from './animations'\nimport { \n  useCaseStudyFilters, \n  useAdvancedSearch, \n  useSortedCaseStudies,\n  useFavorites \n} from './hooks'\n\ninterface EnhancedGridProps {\n  initialView?: 'grid' | 'list'\n  showSearch?: boolean\n  showFilters?: boolean\n  showSort?: boolean\n  itemsPerPage?: number\n}\n\nexport const EnhancedCaseStudiesGrid: React.FC<EnhancedGridProps> = ({\n  initialView = 'grid',\n  showSearch = true,\n  showFilters = true,\n  showSort = true,\n  itemsPerPage = 9\n}) => {\n  const [viewMode, setViewMode] = useState<'grid' | 'list'>(initialView)\n  const [selectedCases, setSelectedCases] = useState<string[]>([])\n  \n  // Custom hooks for functionality\n  const { activeFilter, isTransitioning, handleFilterChange } = useCaseStudyFilters()\n  const { query, setQuery, filteredItems, isSearching } = useAdvancedSearch(caseStudies)\n  const { sortedItems, sortBy, sortOrder, handleSort } = useSortedCaseStudies(filteredItems)\n  const { favorites, toggleFavorite } = useFavorites()\n\n  // Get unique categories\n  const categories = useMemo(() => \n    Array.from(new Set(caseStudies.map(study => study.category))),\n    []\n  )\n\n  // Filter by active category\n  const displayedItems = useMemo(() => {\n    if (activeFilter === 'all') return sortedItems\n    return sortedItems.filter(study => study.category === activeFilter)\n  }, [sortedItems, activeFilter])\n\n  // Format category name\n  const formatCategory = (category: string) => \n    category.split('-').map(word => \n      word.charAt(0).toUpperCase() + word.slice(1)\n    ).join(' ')\n\n  return (\n    <div className=\"space-y-8\">\n      {/* Enhanced controls bar */}\n      <motion.div \n        className=\"flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-6 bg-gradient-to-r from-background to-muted/50 rounded-xl border\"\n        initial={{ opacity: 0, y: -20 }}\n        animate={{ opacity: 1, y: 0 }}\n        transition={{ duration: 0.5 }}\n      >\n        {/* Search */}\n        {showSearch && (\n          <div className=\"relative flex-1 max-w-md\">\n            <Search className=\"absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground\" />\n            <Input\n              placeholder=\"Search case studies...\"\n              value={query}\n              onChange={(e) => setQuery(e.target.value)}\n              className=\"pl-10 bg-background/50 backdrop-blur-sm border-border/50\"\n            />\n            {isSearching && (\n              <div className=\"absolute right-3 top-1/2 -translate-y-1/2\">\n                <div className=\"h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent\" />\n              </div>\n            )}\n          </div>\n        )}\n\n        <div className=\"flex items-center gap-4\">\n          {/* View mode toggle */}\n          <div className=\"flex items-center gap-1 p-1 bg-muted rounded-lg\">\n            <Button\n              variant={viewMode === 'grid' ? 'default' : 'ghost'}\n              size=\"sm\"\n              onClick={() => setViewMode('grid')}\n              className=\"h-8 w-8 p-0\"\n            >\n              <Grid3X3 className=\"h-4 w-4\" />\n            </Button>\n            <Button\n              variant={viewMode === 'list' ? 'default' : 'ghost'}\n              size=\"sm\"\n              onClick={() => setViewMode('list')}\n              className=\"h-8 w-8 p-0\"\n            >\n              <List className=\"h-4 w-4\" />\n            </Button>\n          </div>\n\n          {/* Sort controls */}\n          {showSort && (\n            <div className=\"flex items-center gap-2\">\n              <Button\n                variant=\"outline\"\n                size=\"sm\"\n                onClick={() => handleSort('title')}\n                className=\"gap-2\"\n              >\n                Title\n                {sortBy === 'title' && (\n                  sortOrder === 'asc' ? <SortAsc className=\"h-3 w-3\" /> : <SortDesc className=\"h-3 w-3\" />\n                )}\n              </Button>\n              <Button\n                variant=\"outline\"\n                size=\"sm\"\n                onClick={() => handleSort('category')}\n                className=\"gap-2\"\n              >\n                Category\n                {sortBy === 'category' && (\n                  sortOrder === 'asc' ? <SortAsc className=\"h-3 w-3\" /> : <SortDesc className=\"h-3 w-3\" />\n                )}\n              </Button>\n            </div>\n          )}\n\n          {/* Results count */}\n          <div className=\"text-sm text-muted-foreground\">\n            {displayedItems.length} of {caseStudies.length} cases\n          </div>\n        </div>\n      </motion.div>\n\n      {/* Enhanced filters */}\n      {showFilters && (\n        <motion.div \n          className=\"flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg\"\n          variants={containerAnimations}\n          initial=\"hidden\"\n          animate=\"visible\"\n        >\n          <motion.div variants={filterAnimations}>\n            <Badge \n              variant={activeFilter === 'all' ? 'default' : 'outline'}\n              className=\"cursor-pointer px-4 py-2 text-sm transition-all hover:scale-105\"\n              onClick={() => handleFilterChange('all')}\n            >\n              All ({caseStudies.length})\n            </Badge>\n          </motion.div>\n          \n          {categories.map(category => {\n            const count = caseStudies.filter(study => study.category === category).length\n            return (\n              <motion.div key={category} variants={filterAnimations}>\n                <Badge \n                  variant={activeFilter === category ? 'default' : 'outline'}\n                  className=\"cursor-pointer px-4 py-2 text-sm transition-all hover:scale-105\"\n                  onClick={() => handleFilterChange(category)}\n                >\n                  {formatCategory(category)} ({count})\n                </Badge>\n              </motion.div>\n            )\n          })}\n        </motion.div>\n      )}\n\n      {/* Enhanced grid/list view */}\n      <AnimatePresence mode=\"wait\">\n        {isTransitioning ? (\n          <motion.div\n            key=\"loading\"\n            className=\"flex items-center justify-center py-20\"\n            initial={{ opacity: 0 }}\n            animate={{ opacity: 1 }}\n            exit={{ opacity: 0 }}\n          >\n            <div className=\"flex items-center gap-3 text-muted-foreground\">\n              <div className=\"h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent\" />\n              <span>Filtering cases...</span>\n            </div>\n          </motion.div>\n        ) : (\n          <motion.div\n            key={`${viewMode}-${activeFilter}`}\n            className={`grid gap-6 ${\n              viewMode === 'grid' \n                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' \n                : 'grid-cols-1'\n            }`}\n            variants={containerAnimations}\n            initial=\"hidden\"\n            animate=\"visible\"\n            exit=\"hidden\"\n          >\n            {displayedItems.map((study, index) => (\n              <motion.div\n                key={study.id}\n                variants={cardAnimations}\n                custom={index}\n                className=\"group\"\n              >\n                {viewMode === 'grid' ? (\n                  <CaseStudy \n                    caseStudy={study} \n                    isPreview \n                    priority={index < 3}\n                  />\n                ) : (\n                  // List view layout\n                  <div className=\"flex gap-6 p-6 bg-background border rounded-xl hover:shadow-lg transition-all duration-300\">\n                    <div className=\"relative w-48 h-32 flex-shrink-0 overflow-hidden rounded-lg\">\n                      <img \n                        src={study.thumbnail} \n                        alt={study.title}\n                        className=\"w-full h-full object-cover transition-transform group-hover:scale-105\"\n                      />\n                    </div>\n                    <div className=\"flex-1 space-y-3\">\n                      <div className=\"flex items-start justify-between\">\n                        <div>\n                          <Badge variant=\"outline\" className=\"mb-2\">\n                            {formatCategory(study.category)}\n                          </Badge>\n                          <h3 className=\"text-xl font-bold group-hover:text-primary transition-colors\">\n                            {study.title}\n                          </h3>\n                          <p className=\"text-muted-foreground mt-2\">\n                            {study.description}\n                          </p>\n                        </div>\n                        <div className=\"flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity\">\n                          <Button size=\"sm\" variant=\"ghost\" className=\"h-8 w-8 p-0\">\n                            <Heart className=\"h-4 w-4\" />\n                          </Button>\n                          <Button size=\"sm\" variant=\"ghost\" className=\"h-8 w-8 p-0\">\n                            <Share2 className=\"h-4 w-4\" />\n                          </Button>\n                          <Button size=\"sm\" variant=\"ghost\" className=\"h-8 w-8 p-0\">\n                            <Eye className=\"h-4 w-4\" />\n                          </Button>\n                        </div>\n                      </div>\n                      <div className=\"flex items-center justify-between\">\n                        <div className=\"flex gap-4\">\n                          {study.results.slice(0, 2).map((result, idx) => (\n                            <div key={idx} className=\"text-center\">\n                              <div className=\"text-lg font-bold text-primary\">{result.value}</div>\n                              <div className=\"text-xs text-muted-foreground\">{result.metric}</div>\n                            </div>\n                          ))}\n                        </div>\n                        <Button variant=\"outline\" className=\"gap-2\">\n                          View Study <Eye className=\"h-4 w-4\" />\n                        </Button>\n                      </div>\n                    </div>\n                  </div>\n                )}\n              </motion.div>\n            ))}\n          </motion.div>\n        )}\n      </AnimatePresence>\n\n      {/* Enhanced empty state */}\n      {displayedItems.length === 0 && !isTransitioning && (\n        <motion.div\n          className=\"text-center py-20\"\n          initial={{ opacity: 0, scale: 0.9 }}\n          animate={{ opacity: 1, scale: 1 }}\n          transition={{ duration: 0.5 }}\n        >\n          <div className=\"mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-6\">\n            <Search className=\"h-12 w-12 text-muted-foreground\" />\n          </div>\n          <h3 className=\"text-xl font-semibold mb-2\">\n            {query ? 'No matching case studies' : 'No case studies found'}\n          </h3>\n          <p className=\"text-muted-foreground mb-6\">\n            {query \n              ? `Try adjusting your search terms or filters`\n              : 'There are no case studies in this category yet.'\n            }\n          </p>\n          {query && (\n            <Button onClick={() => setQuery('')} variant=\"outline\">\n              Clear search\n            </Button>\n          )}\n        </motion.div>\n      )}\n    </div>\n  )\n}\n\nexport default EnhancedCaseStudiesGrid"
+'use client'
+
+// Enhanced case studies grid with advanced frontend features
+import React, { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { 
+  Search, 
+  Filter, 
+  Grid3X3, 
+  List, 
+  SortAsc, 
+  SortDesc,
+  Eye,
+  Heart,
+  Share2
+} from 'lucide-react'
+import { CaseStudy } from '@/components/shared/work/CaseStudy'
+import { caseStudies } from '@/lib/data/case-studies'
+import { 
+  containerAnimations, 
+  cardAnimations, 
+  filterAnimations 
+} from './animations'
+import { 
+  useCaseStudyFilters, 
+  useAdvancedSearch, 
+  useSortedCaseStudies,
+  useFavorites 
+} from './hooks'
+
+interface EnhancedGridProps {
+  initialView?: 'grid' | 'list'
+  showSearch?: boolean
+  showFilters?: boolean
+  showSort?: boolean
+  itemsPerPage?: number
+}
+
+export const EnhancedCaseStudiesGrid: React.FC<EnhancedGridProps> = ({
+  initialView = 'grid',
+  showSearch = true,
+  showFilters = true,
+  showSort = true,
+  itemsPerPage = 9
+}) => {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(initialView)
+  const [selectedCases, setSelectedCases] = useState<string[]>([])
+  
+  // Custom hooks for functionality
+  const { activeFilter, isTransitioning, handleFilterChange } = useCaseStudyFilters()
+  const { query, setQuery, filteredItems, isSearching } = useAdvancedSearch(caseStudies)
+  const { sortedItems, sortBy, sortOrder, handleSort } = useSortedCaseStudies(filteredItems)
+  const { favorites, toggleFavorite } = useFavorites()
+
+  // Get unique categories
+  const categories = useMemo(() => 
+    Array.from(new Set(caseStudies.map(study => study.category))),
+    []
+  )
+
+  // Filter by active category
+  const displayedItems = useMemo(() => {
+    if (activeFilter === 'all') return sortedItems
+    return sortedItems.filter(study => study.category === activeFilter)
+  }, [sortedItems, activeFilter])
+
+  // Format category name
+  const formatCategory = (category: string) => 
+    category.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ')
+
+  return (
+    <div className="space-y-8">
+      {/* Enhanced controls bar */}
+      <motion.div 
+        className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-6 bg-gradient-to-r from-background to-muted/50 rounded-xl border"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Search */}
+        {showSearch && (
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search case studies..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-10 bg-background/50 backdrop-blur-sm border-border/50"
+            />
+            {isSearching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-4">
+          {/* View mode toggle */}
+          <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="h-8 w-8 p-0"
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="h-8 w-8 p-0"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Sort controls */}
+          {showSort && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSort('title')}
+                className="gap-2"
+              >
+                Title
+                {sortBy === 'title' && (
+                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSort('category')}
+                className="gap-2"
+              >
+                Category
+                {sortBy === 'category' && (
+                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Results count */}
+          <div className="text-sm text-muted-foreground">
+            {displayedItems.length} of {caseStudies.length} cases
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Enhanced filters */}
+      {showFilters && (
+        <motion.div 
+          className="flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg"
+          variants={containerAnimations}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={filterAnimations}>
+            <Badge 
+              variant={activeFilter === 'all' ? 'default' : 'outline'}
+              className="cursor-pointer px-4 py-2 text-sm transition-all hover:scale-105"
+              onClick={() => handleFilterChange('all')}
+            >
+              All ({caseStudies.length})
+            </Badge>
+          </motion.div>
+          
+          {categories.map(category => {
+            const count = caseStudies.filter(study => study.category === category).length
+            return (
+              <motion.div key={category} variants={filterAnimations}>
+                <Badge 
+                  variant={activeFilter === category ? 'default' : 'outline'}
+                  className="cursor-pointer px-4 py-2 text-sm transition-all hover:scale-105"
+                  onClick={() => handleFilterChange(category)}
+                >
+                  {formatCategory(category)} ({count})
+                </Badge>
+              </motion.div>
+            )
+          })}
+        </motion.div>
+      )}
+
+      {/* Enhanced grid/list view */}
+      <AnimatePresence mode="wait">
+        {isTransitioning ? (
+          <motion.div
+            key="loading"
+            className="flex items-center justify-center py-20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span>Filtering cases...</span>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key={`${viewMode}-${activeFilter}`}
+            className={`grid gap-6 ${
+              viewMode === 'grid' 
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                : 'grid-cols-1'
+            }`}
+            variants={containerAnimations}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            {displayedItems.map((study, index) => (
+              <motion.div
+                key={study.id}
+                variants={cardAnimations}
+                custom={index}
+                className="group"
+              >
+                {viewMode === 'grid' ? (
+                  <CaseStudy 
+                    caseStudy={study} 
+                    isPreview 
+                    priority={index < 3}
+                  />
+                ) : (
+                  // List view layout
+                  <div className="flex gap-6 p-6 bg-background border rounded-xl hover:shadow-lg transition-all duration-300">
+                    <div className="relative w-48 h-32 flex-shrink-0 overflow-hidden rounded-lg">
+                      <img 
+                        src={study.thumbnail} 
+                        alt={study.title}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <Badge variant="outline" className="mb-2">
+                            {formatCategory(study.category)}
+                          </Badge>
+                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
+                            {study.title}
+                          </h3>
+                          <p className="text-muted-foreground mt-2">
+                            {study.description}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                            <Heart className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-4">
+                          {study.results.slice(0, 2).map((result: { metric: string; value: string }, idx: number) => (
+                            <div key={idx} className="text-center">
+                              <div className="text-lg font-bold text-primary">{result.value}</div>
+                              <div className="text-xs text-muted-foreground">{result.metric}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <Button variant="outline" className="gap-2">
+                          View Study <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Enhanced empty state */}
+      {displayedItems.length === 0 && !isTransitioning && (
+        <motion.div
+          className="text-center py-20"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-6">
+            <Search className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">
+            {query ? 'No matching case studies' : 'No case studies found'}
+          </h3>
+          <p className="text-muted-foreground mb-6">
+            {query 
+              ? `Try adjusting your search terms or filters`
+              : 'There are no case studies in this category yet.'
+            }
+          </p>
+          {query && (
+            <Button onClick={() => setQuery('')} variant="outline">
+              Clear search
+            </Button>
+          )}
+        </motion.div>
+      )}
+    </div>
+  )
+}
+
+export default EnhancedCaseStudiesGrid

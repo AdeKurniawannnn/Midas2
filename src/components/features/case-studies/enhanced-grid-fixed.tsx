@@ -270,7 +270,7 @@ export const EnhancedCaseStudiesGrid: React.FC<EnhancedGridProps> = ({
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex gap-4">
-                          {study.results.slice(0, 2).map((result, idx) => (
+                          {study.results.slice(0, 2).map((result: { metric: string; value: string }, idx: number) => (
                             <div key={idx} className="text-center">
                               <div className="text-lg font-bold text-primary">{result.value}</div>
                               <div className="text-xs text-muted-foreground">{result.metric}</div>

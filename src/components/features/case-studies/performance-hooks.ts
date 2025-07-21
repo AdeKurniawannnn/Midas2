@@ -82,7 +82,9 @@ export const useOptimizedSearch = (
     // Limit cache size to prevent memory leaks
     if (searchCache.current.size > 50) {
       const firstKey = searchCache.current.keys().next().value
-      searchCache.current.delete(firstKey)
+      if (firstKey) {
+        searchCache.current.delete(firstKey)
+      }
     }
     
     return results
@@ -358,8 +360,8 @@ export const useOptimizedAnimation = (prefersReducedMotion?: boolean) => {
     const deviceMemory = (navigator as any).deviceMemory
     
     const updateAnimationState = () => {
-      const reduce = prefersReducedMotion ?? 
-        mediaQuery.matches ||
+      const reduce = (prefersReducedMotion ?? 
+        mediaQuery.matches) ||
         (connection && ['slow-2g', '2g'].includes(connection.effectiveType)) ||
         (deviceMemory && deviceMemory <= 2)
       

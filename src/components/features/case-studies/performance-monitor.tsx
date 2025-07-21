@@ -75,47 +75,6 @@ export const PerformanceProvider: React.FC<{ children: ReactNode }> = ({ childre
   const observerRef = useRef<PerformanceObserver>()
   const renderCountRef = useRef(0)
   
-  // Initialize performance monitoring
-  const startMonitoring = useCallback(() => {
-    if (typeof window === 'undefined' || isMonitoring) return
-    
-    setIsMonitoring(true)
-    
-    // Observe Core Web Vitals
-    if ('PerformanceObserver' in window) {
-      observerRef.current = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          updateMetrics(entry)
-        }
-      })
-      
-      // Observe paint, navigation, and layout shift entries
-      try {
-        observerRef.current.observe({ entryTypes: ['paint', 'navigation', 'layout-shift', 'first-input'] })
-      } catch (error) {
-        console.warn('Performance Observer error:', error)
-      }
-    }
-    
-    // Start periodic monitoring
-    intervalRef.current = setInterval(collectMetrics, 2000)
-    
-    // Initial collection
-    collectMetrics()
-  }, [isMonitoring, collectMetrics, updateMetrics])
-  
-  const stopMonitoring = useCallback(() => {
-    setIsMonitoring(false)
-    
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-    }
-    
-    if (observerRef.current) {
-      observerRef.current.disconnect()
-    }
-  }, [])
-  
   // Collect comprehensive performance metrics
   const collectMetrics = useCallback(() => {
     if (typeof window === 'undefined') return
@@ -157,7 +116,7 @@ export const PerformanceProvider: React.FC<{ children: ReactNode }> = ({ childre
     
     setMetrics(newMetrics)
   }, [])
-  
+
   // Update metrics from Performance Observer
   const updateMetrics = useCallback((entry: PerformanceEntry) => {
     setMetrics(prev => {
@@ -182,6 +141,49 @@ export const PerformanceProvider: React.FC<{ children: ReactNode }> = ({ childre
       return updated
     })
   }, [])
+
+  // Initialize performance monitoring
+  const startMonitoring = useCallback(() => {
+    if (typeof window === 'undefined' || isMonitoring) return
+    
+    setIsMonitoring(true)
+    
+    // Observe Core Web Vitals
+    if ('PerformanceObserver' in window) {
+      observerRef.current = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          updateMetrics(entry)
+        }
+      })
+      
+      // Observe paint, navigation, and layout shift entries
+      try {
+        observerRef.current.observe({ entryTypes: ['paint', 'navigation', 'layout-shift', 'first-input'] })
+      } catch (error) {
+        console.warn('Performance Observer error:', error)
+      }
+    }
+    
+    // Start periodic monitoring
+    intervalRef.current = setInterval(collectMetrics, 2000)
+    
+    // Initial collection
+    collectMetrics()
+  }, [isMonitoring, collectMetrics, updateMetrics])
+  
+  const stopMonitoring = useCallback(() => {
+    setIsMonitoring(false)
+    
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+    }
+    
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+    }
+  }, [])
+  
+
   
   // Device-specific optimizations
   const optimizeForDevice = useCallback(() => {

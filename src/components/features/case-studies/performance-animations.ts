@@ -30,7 +30,7 @@ export const optimizedCardAnimations: Variants = {
     scale: prefersReducedMotion ? 1 : 0.95,
     transition: {
       duration: config.duration,
-      ease: config.ease
+      ease: config.ease as any
     }
   },
   visible: (index: number) => ({
@@ -40,9 +40,7 @@ export const optimizedCardAnimations: Variants = {
     transition: {
       duration: config.duration,
       delay: prefersReducedMotion ? 0 : index * 0.05,
-      ease: config.ease,
-      // Force GPU acceleration
-      force3d: true
+      ease: config.ease as any
     }
   }),
   hover: prefersReducedMotion ? {} : {
@@ -50,15 +48,14 @@ export const optimizedCardAnimations: Variants = {
     scale: 1.02,
     transition: {
       duration: 0.2,
-      ease: "easeOut",
-      force3d: true
+      ease: "easeOut"
     }
   },
   tap: prefersReducedMotion ? {} : {
     scale: 0.98,
     transition: {
       duration: 0.1,
-      ease: "easeOut"
+      ease: "easeOut" as any
     }
   }
 }
@@ -89,7 +86,7 @@ export const optimizedFilterAnimations: Variants = {
     x: 0,
     transition: {
       duration: config.duration,
-      ease: config.ease
+      ease: config.ease as any
     }
   }
 }
@@ -100,15 +97,14 @@ export const optimizedButtonAnimations: Variants = {
     scale: 1.05,
     transition: {
       duration: 0.15,
-      ease: "easeOut",
-      force3d: true
+      ease: "easeOut"
     }
   },
   tap: prefersReducedMotion ? {} : {
     scale: 0.95,
     transition: {
       duration: 0.1,
-      ease: "easeOut"
+      ease: "easeOut" as any
     }
   }
 }
@@ -120,7 +116,7 @@ export const optimizedLoadingAnimations: Variants = {
     transition: {
       duration: prefersReducedMotion ? 0.5 : 1.5,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as any
     }
   }
 }
@@ -138,8 +134,7 @@ export const optimizedModalAnimations: Variants = {
     y: 0,
     transition: {
       duration: config.duration,
-      ease: config.ease,
-      force3d: true
+      ease: config.ease as any
     }
   },
   exit: {
@@ -164,8 +159,7 @@ export const optimizedScrollAnimations: Variants = {
     y: 0,
     transition: {
       duration: config.duration,
-      ease: config.ease,
-      force3d: true
+      ease: config.ease as any
     }
   }
 }

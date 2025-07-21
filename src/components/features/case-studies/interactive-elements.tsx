@@ -1,1 +1,387 @@
-'use client'\n\n// Advanced interactive elements for case studies\nimport React, { useState, useCallback, useRef } from 'react'\nimport { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'\nimport { Button } from '@/components/ui/button'\nimport { Badge } from '@/components/ui/badge'\nimport { Card, CardContent } from '@/components/ui/card'\nimport { \n  Heart, \n  Share2, \n  Bookmark, \n  ExternalLink, \n  Download,\n  Play,\n  Pause,\n  Volume2,\n  VolumeX,\n  Maximize,\n  Copy,\n  Check\n} from 'lucide-react'\nimport { useFavorites, useModal } from './hooks'\nimport { buttonAnimations, modalAnimations } from './animations'\n\n// Enhanced floating action button with ripple effect\nexport const FloatingActionButton: React.FC<{\n  icon: React.ReactNode\n  onClick?: () => void\n  className?: string\n  ariaLabel?: string\n}> = ({ icon, onClick, className = '', ariaLabel }) => {\n  const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([])\n  const rippleRef = useRef<number>(0)\n\n  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {\n    if (onClick) onClick()\n    \n    // Create ripple effect\n    const rect = e.currentTarget.getBoundingClientRect()\n    const x = e.clientX - rect.left\n    const y = e.clientY - rect.top\n    const id = ++rippleRef.current\n    \n    setRipples(prev => [...prev, { id, x, y }])\n    \n    // Remove ripple after animation\n    setTimeout(() => {\n      setRipples(prev => prev.filter(ripple => ripple.id !== id))\n    }, 600)\n  }, [onClick])\n\n  return (\n    <motion.button\n      className={`relative overflow-hidden rounded-full bg-primary text-white shadow-lg hover:shadow-xl transition-shadow ${className}`}\n      variants={buttonAnimations}\n      whileHover=\"hover\"\n      whileTap=\"tap\"\n      onClick={handleClick}\n      aria-label={ariaLabel}\n    >\n      <div className=\"relative z-10 p-3\">\n        {icon}\n      </div>\n      \n      {/* Ripple effects */}\n      {ripples.map(ripple => (\n        <motion.span\n          key={ripple.id}\n          className=\"absolute rounded-full bg-white/30 pointer-events-none\"\n          style={{\n            left: ripple.x - 20,\n            top: ripple.y - 20,\n            width: 40,\n            height: 40\n          }}\n          initial={{ scale: 0, opacity: 1 }}\n          animate={{ scale: 2, opacity: 0 }}\n          transition={{ duration: 0.6, ease: \"easeOut\" }}\n        />\n      ))}\n    </motion.button>\n  )\n}\n\n// Interactive case study card with advanced hover states\nexport const InteractiveCaseCard: React.FC<{\n  caseStudy: any\n  onFavorite?: (id: string) => void\n  onShare?: (id: string) => void\n  onView?: (id: string) => void\n}> = ({ caseStudy, onFavorite, onShare, onView }) => {\n  const [isHovered, setIsHovered] = useState(false)\n  const { isFavorite, toggleFavorite } = useFavorites()\n  const mouseX = useMotionValue(0)\n  const mouseY = useMotionValue(0)\n  \n  // Create magnetic effect\n  const cardX = useTransform(mouseX, [-300, 300], [-10, 10])\n  const cardY = useTransform(mouseY, [-300, 300], [-10, 10])\n  \n  const handleMouseMove = (e: React.MouseEvent) => {\n    const rect = e.currentTarget.getBoundingClientRect()\n    const centerX = rect.left + rect.width / 2\n    const centerY = rect.top + rect.height / 2\n    mouseX.set(e.clientX - centerX)\n    mouseY.set(e.clientY - centerY)\n  }\n  \n  const handleMouseLeave = () => {\n    mouseX.set(0)\n    mouseY.set(0)\n    setIsHovered(false)\n  }\n\n  return (\n    <motion.div\n      style={{ x: cardX, y: cardY }}\n      onMouseMove={handleMouseMove}\n      onMouseEnter={() => setIsHovered(true)}\n      onMouseLeave={handleMouseLeave}\n      className=\"group relative\"\n    >\n      <Card className=\"overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500\">\n        <div className=\"relative h-64 overflow-hidden\">\n          <img \n            src={caseStudy.thumbnail}\n            alt={caseStudy.title}\n            className=\"w-full h-full object-cover transition-transform duration-700 group-hover:scale-110\"\n          />\n          \n          {/* Overlay with gradient */}\n          <div className=\"absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent\" />\n          \n          {/* Action buttons with staggered animation */}\n          <AnimatePresence>\n            {isHovered && (\n              <motion.div \n                className=\"absolute top-4 right-4 flex flex-col gap-2\"\n                initial={{ opacity: 0, x: 20 }}\n                animate={{ opacity: 1, x: 0 }}\n                exit={{ opacity: 0, x: 20 }}\n                transition={{ staggerChildren: 0.1 }}\n              >\n                <motion.div\n                  initial={{ opacity: 0, scale: 0 }}\n                  animate={{ opacity: 1, scale: 1 }}\n                  transition={{ delay: 0.1 }}\n                >\n                  <FloatingActionButton\n                    icon={<Heart className={`h-4 w-4 ${isFavorite(caseStudy.id) ? 'fill-current' : ''}`} />}\n                    onClick={() => {\n                      toggleFavorite(caseStudy.id)\n                      onFavorite?.(caseStudy.id)\n                    }}\n                    className=\"h-10 w-10\"\n                    ariaLabel=\"Add to favorites\"\n                  />\n                </motion.div>\n                \n                <motion.div\n                  initial={{ opacity: 0, scale: 0 }}\n                  animate={{ opacity: 1, scale: 1 }}\n                  transition={{ delay: 0.2 }}\n                >\n                  <FloatingActionButton\n                    icon={<Share2 className=\"h-4 w-4\" />}\n                    onClick={() => onShare?.(caseStudy.id)}\n                    className=\"h-10 w-10\"\n                    ariaLabel=\"Share case study\"\n                  />\n                </motion.div>\n                \n                <motion.div\n                  initial={{ opacity: 0, scale: 0 }}\n                  animate={{ opacity: 1, scale: 1 }}\n                  transition={{ delay: 0.3 }}\n                >\n                  <FloatingActionButton\n                    icon={<ExternalLink className=\"h-4 w-4\" />}\n                    onClick={() => onView?.(caseStudy.id)}\n                    className=\"h-10 w-10\"\n                    ariaLabel=\"View details\"\n                  />\n                </motion.div>\n              </motion.div>\n            )}\n          </AnimatePresence>\n          \n          {/* Category badge with bounce effect */}\n          <motion.div \n            className=\"absolute bottom-4 left-4\"\n            whileHover={{ scale: 1.1 }}\n            whileTap={{ scale: 0.95 }}\n          >\n            <Badge className=\"bg-primary/90 backdrop-blur-sm border border-white/20\">\n              {caseStudy.category.replace('-', ' ')}\n            </Badge>\n          </motion.div>\n        </div>\n        \n        <CardContent className=\"p-6\">\n          <h3 className=\"text-xl font-bold mb-2 group-hover:text-primary transition-colors\">\n            {caseStudy.title}\n          </h3>\n          <p className=\"text-muted-foreground line-clamp-2\">\n            {caseStudy.description}\n          </p>\n        </CardContent>\n      </Card>\n    </motion.div>\n  )\n}\n\n// Progressive loading placeholder with skeleton animation\nexport const SkeletonCard: React.FC = () => {\n  return (\n    <Card className=\"overflow-hidden\">\n      <div className=\"h-64 bg-muted animate-pulse\" />\n      <CardContent className=\"p-6 space-y-4\">\n        <div className=\"h-4 bg-muted rounded animate-pulse\" />\n        <div className=\"h-3 bg-muted rounded w-3/4 animate-pulse\" />\n        <div className=\"h-3 bg-muted rounded w-1/2 animate-pulse\" />\n      </CardContent>\n    </Card>\n  )\n}\n\n// Enhanced share modal with copy functionality\nexport const ShareModal: React.FC<{\n  isOpen: boolean\n  onClose: () => void\n  caseStudy: any\n}> = ({ isOpen, onClose, caseStudy }) => {\n  const [copied, setCopied] = useState(false)\n  const url = `${window.location.origin}/case-studies/${caseStudy?.id}`\n  \n  const handleCopy = useCallback(async () => {\n    try {\n      await navigator.clipboard.writeText(url)\n      setCopied(true)\n      setTimeout(() => setCopied(false), 2000)\n    } catch (error) {\n      console.error('Failed to copy:', error)\n    }\n  }, [url])\n  \n  const shareOptions = [\n    {\n      name: 'Twitter',\n      color: 'bg-blue-500',\n      onClick: () => {\n        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out: ${caseStudy?.title}`)}&url=${encodeURIComponent(url)}`, '_blank')\n      }\n    },\n    {\n      name: 'LinkedIn',\n      color: 'bg-blue-700',\n      onClick: () => {\n        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank')\n      }\n    },\n    {\n      name: 'Facebook',\n      color: 'bg-blue-600',\n      onClick: () => {\n        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')\n      }\n    }\n  ]\n\n  return (\n    <AnimatePresence>\n      {isOpen && (\n        <>\n          <motion.div\n            className=\"fixed inset-0 bg-black/50 backdrop-blur-sm z-50\"\n            initial={{ opacity: 0 }}\n            animate={{ opacity: 1 }}\n            exit={{ opacity: 0 }}\n            onClick={onClose}\n          />\n          <motion.div\n            className=\"fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50\"\n            variants={modalAnimations}\n            initial=\"hidden\"\n            animate=\"visible\"\n            exit=\"exit\"\n          >\n            <Card className=\"w-96 p-6\">\n              <h3 className=\"text-lg font-semibold mb-4\">Share Case Study</h3>\n              \n              {/* URL copy section */}\n              <div className=\"mb-6\">\n                <label className=\"text-sm font-medium mb-2 block\">Copy Link</label>\n                <div className=\"flex gap-2\">\n                  <input \n                    type=\"text\" \n                    value={url} \n                    readOnly \n                    className=\"flex-1 px-3 py-2 text-sm bg-muted border rounded-md\"\n                  />\n                  <Button\n                    size=\"sm\"\n                    onClick={handleCopy}\n                    className=\"gap-2\"\n                  >\n                    {copied ? <Check className=\"h-4 w-4\" /> : <Copy className=\"h-4 w-4\" />}\n                    {copied ? 'Copied!' : 'Copy'}\n                  </Button>\n                </div>\n              </div>\n              \n              {/* Social sharing */}\n              <div className=\"space-y-3\">\n                <label className=\"text-sm font-medium block\">Share on Social Media</label>\n                <div className=\"grid grid-cols-3 gap-3\">\n                  {shareOptions.map((option, index) => (\n                    <motion.button\n                      key={option.name}\n                      className={`p-3 rounded-lg text-white font-medium ${option.color} hover:opacity-90 transition-opacity`}\n                      onClick={option.onClick}\n                      whileHover={{ scale: 1.05 }}\n                      whileTap={{ scale: 0.95 }}\n                      initial={{ opacity: 0, y: 20 }}\n                      animate={{ opacity: 1, y: 0 }}\n                      transition={{ delay: index * 0.1 }}\n                    >\n                      {option.name}\n                    </motion.button>\n                  ))}\n                </div>\n              </div>\n              \n              <Button \n                variant=\"outline\" \n                className=\"w-full mt-6\" \n                onClick={onClose}\n              >\n                Close\n              </Button>\n            </Card>\n          </motion.div>\n        </>\n      )}\n    </AnimatePresence>\n  )\n}\n\n// Animated progress indicator\nexport const ProgressIndicator: React.FC<{\n  value: number\n  max: number\n  label?: string\n  color?: string\n}> = ({ value, max, label, color = 'bg-primary' }) => {\n  const percentage = (value / max) * 100\n  \n  return (\n    <div className=\"space-y-2\">\n      {label && (\n        <div className=\"flex justify-between text-sm\">\n          <span>{label}</span>\n          <span>{Math.round(percentage)}%</span>\n        </div>\n      )}\n      <div className=\"h-2 bg-muted rounded-full overflow-hidden\">\n        <motion.div\n          className={`h-full ${color} rounded-full`}\n          initial={{ width: 0 }}\n          animate={{ width: `${percentage}%` }}\n          transition={{ duration: 1, ease: \"easeOut\" }}\n        />\n      </div>\n    </div>\n  )\n}\n\nexport default {\n  FloatingActionButton,\n  InteractiveCaseCard,\n  SkeletonCard,\n  ShareModal,\n  ProgressIndicator\n}"
+'use client'
+
+// Advanced interactive elements for case studies
+import React, { useState, useCallback, useRef } from 'react'
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { 
+  Heart, 
+  Share2, 
+  Bookmark, 
+  ExternalLink, 
+  Download,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Copy,
+  Check
+} from 'lucide-react'
+import { useFavorites, useModal } from './hooks'
+import { buttonAnimations, modalAnimations } from './animations'
+
+// Enhanced floating action button with ripple effect
+export const FloatingActionButton: React.FC<{
+  icon: React.ReactNode
+  onClick?: () => void
+  className?: string
+  ariaLabel?: string
+}> = ({ icon, onClick, className = '', ariaLabel }) => {
+  const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([])
+  const rippleRef = useRef<number>(0)
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (onClick) onClick()
+    
+    // Create ripple effect
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const id = ++rippleRef.current
+    
+    setRipples(prev => [...prev, { id, x, y }])
+    
+    // Remove ripple after animation
+    setTimeout(() => {
+      setRipples(prev => prev.filter(ripple => ripple.id !== id))
+    }, 600)
+  }, [onClick])
+
+  return (
+    <motion.button
+      className={`relative overflow-hidden rounded-full bg-primary text-white shadow-lg hover:shadow-xl transition-shadow ${className}`}
+      variants={buttonAnimations}
+      whileHover="hover"
+      whileTap="tap"
+      onClick={handleClick}
+      aria-label={ariaLabel}
+    >
+      <div className="relative z-10 p-3">
+        {icon}
+      </div>
+      
+      {/* Ripple effects */}
+      {ripples.map(ripple => (
+        <motion.span
+          key={ripple.id}
+          className="absolute rounded-full bg-white/30 pointer-events-none"
+          style={{
+            left: ripple.x - 20,
+            top: ripple.y - 20,
+            width: 40,
+            height: 40
+          }}
+          initial={{ scale: 0, opacity: 1 }}
+          animate={{ scale: 2, opacity: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        />
+      ))}
+    </motion.button>
+  )
+}
+
+// Interactive case study card with advanced hover states
+export const InteractiveCaseCard: React.FC<{
+  caseStudy: any
+  onFavorite?: (id: string) => void
+  onShare?: (id: string) => void
+  onView?: (id: string) => void
+}> = ({ caseStudy, onFavorite, onShare, onView }) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  
+  // Create magnetic effect
+  const cardX = useTransform(mouseX, [-300, 300], [-10, 10])
+  const cardY = useTransform(mouseY, [-300, 300], [-10, 10])
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    mouseX.set(e.clientX - centerX)
+    mouseY.set(e.clientY - centerY)
+  }
+  
+  const handleMouseLeave = () => {
+    mouseX.set(0)
+    mouseY.set(0)
+    setIsHovered(false)
+  }
+
+  return (
+    <motion.div
+      style={{ x: cardX, y: cardY }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      className="group relative"
+    >
+      <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500">
+        <div className="relative h-64 overflow-hidden">
+          <img 
+            src={caseStudy.thumbnail}
+            alt={caseStudy.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          
+          {/* Overlay with gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          
+          {/* Action buttons with staggered animation */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div 
+                className="absolute top-4 right-4 flex flex-col gap-2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ staggerChildren: 0.1 }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <FloatingActionButton
+                    icon={<Heart className={`h-4 w-4 ${isFavorite(caseStudy.id) ? 'fill-current' : ''}`} />}
+                    onClick={() => {
+                      toggleFavorite(caseStudy.id)
+                      onFavorite?.(caseStudy.id)
+                    }}
+                    className="h-10 w-10"
+                    ariaLabel="Add to favorites"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <FloatingActionButton
+                    icon={<Share2 className="h-4 w-4" />}
+                    onClick={() => onShare?.(caseStudy.id)}
+                    className="h-10 w-10"
+                    ariaLabel="Share case study"
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <FloatingActionButton
+                    icon={<ExternalLink className="h-4 w-4" />}
+                    onClick={() => onView?.(caseStudy.id)}
+                    className="h-10 w-10"
+                    ariaLabel="View details"
+                  />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Category badge with bounce effect */}
+          <motion.div 
+            className="absolute bottom-4 left-4"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Badge className="bg-primary/90 backdrop-blur-sm border border-white/20">
+              {caseStudy.category.replace('-', ' ')}
+            </Badge>
+          </motion.div>
+        </div>
+        
+        <CardContent className="p-6">
+          <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+            {caseStudy.title}
+          </h3>
+          <p className="text-muted-foreground line-clamp-2">
+            {caseStudy.description}
+          </p>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
+
+// Progressive loading placeholder with skeleton animation
+export const SkeletonCard: React.FC = () => {
+  return (
+    <Card className="overflow-hidden">
+      <div className="h-64 bg-muted animate-pulse" />
+      <CardContent className="p-6 space-y-4">
+        <div className="h-4 bg-muted rounded animate-pulse" />
+        <div className="h-3 bg-muted rounded w-3/4 animate-pulse" />
+        <div className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+      </CardContent>
+    </Card>
+  )
+}
+
+// Enhanced share modal with copy functionality
+export const ShareModal: React.FC<{
+  isOpen: boolean
+  onClose: () => void
+  caseStudy: any
+}> = ({ isOpen, onClose, caseStudy }) => {
+  const [copied, setCopied] = useState(false)
+  const url = `${window.location.origin}/case-studies/${caseStudy?.id}`
+  
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }, [url])
+  
+  const shareOptions = [
+    {
+      name: 'Twitter',
+      color: 'bg-blue-500',
+      onClick: () => {
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out: ${caseStudy?.title}`)}&url=${encodeURIComponent(url)}`, '_blank')
+      }
+    },
+    {
+      name: 'LinkedIn',
+      color: 'bg-blue-700',
+      onClick: () => {
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank')
+      }
+    },
+    {
+      name: 'Facebook',
+      color: 'bg-blue-600',
+      onClick: () => {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
+      }
+    }
+  ]
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+          <motion.div
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50"
+            variants={modalAnimations}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <Card className="w-96 p-6">
+              <h3 className="text-lg font-semibold mb-4">Share Case Study</h3>
+              
+              {/* URL copy section */}
+              <div className="mb-6">
+                <label className="text-sm font-medium mb-2 block">Copy Link</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={url} 
+                    readOnly 
+                    className="flex-1 px-3 py-2 text-sm bg-muted border rounded-md"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleCopy}
+                    className="gap-2"
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? 'Copied!' : 'Copy'}
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Social sharing */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium block">Share on Social Media</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {shareOptions.map((option, index) => (
+                    <motion.button
+                      key={option.name}
+                      className={`p-3 rounded-lg text-white font-medium ${option.color} hover:opacity-90 transition-opacity`}
+                      onClick={option.onClick}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      {option.name}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                className="w-full mt-6" 
+                onClick={onClose}
+              >
+                Close
+              </Button>
+            </Card>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// Animated progress indicator
+export const ProgressIndicator: React.FC<{
+  value: number
+  max: number
+  label?: string
+  color?: string
+}> = ({ value, max, label, color = 'bg-primary' }) => {
+  const percentage = (value / max) * 100
+  
+  return (
+    <div className="space-y-2">
+      {label && (
+        <div className="flex justify-between text-sm">
+          <span>{label}</span>
+          <span>{Math.round(percentage)}%</span>
+        </div>
+      )}
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <motion.div
+          className={`h-full ${color} rounded-full`}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        />
+      </div>
+    </div>
+  )
+}
+
+const interactiveElements = {
+  FloatingActionButton,
+  InteractiveCaseCard,
+  SkeletonCard,
+  ShareModal,
+  ProgressIndicator
+}
+
+export default interactiveElements

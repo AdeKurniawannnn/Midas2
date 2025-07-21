@@ -7,8 +7,7 @@ import React, {
   memo, 
   useEffect, 
   useState,
-  useMemo,
-  ErrorBoundary as ReactErrorBoundary 
+  useMemo
 } from 'react'
 import { motion } from 'framer-motion'
 import { Skeleton } from '@/components/ui/skeleton'

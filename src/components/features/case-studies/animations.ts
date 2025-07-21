@@ -315,7 +315,7 @@ export const createStaggeredAnimation = (
   }
 })
 
-export default {
+const animations = {
   cardAnimations,
   containerAnimations,
   heroAnimations,
@@ -334,3 +334,5 @@ export default {
   springConfigs,
   createStaggeredAnimation
 }
+
+export default animations

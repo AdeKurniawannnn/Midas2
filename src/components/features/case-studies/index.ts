@@ -5,13 +5,21 @@
 export { CaseStudy, CaseStudyPreview } from '@/components/shared/work/CaseStudy'
 
 // Data layer
-export { 
+import { 
   caseStudies, 
   getCaseStudyById, 
   getCaseStudiesByCategory, 
   getAllCaseStudyIds,
   automationCaseStudies 
 } from '@/lib/data/case-studies'
+
+export { 
+  caseStudies, 
+  getCaseStudyById, 
+  getCaseStudiesByCategory, 
+  getAllCaseStudyIds,
+  automationCaseStudies 
+}
 
 // Types
 export type { CaseStudy as CaseStudyType, Project } from '@/lib/types/work'
@@ -109,17 +117,17 @@ export const caseStudyHelpers = {
   },
   
   // Search case studies
-  searchCaseStudies: (query: string, studies?: typeof caseStudies) => {
+  searchCaseStudies: (query: string, studies?: any[]) => {
     const studiesToSearch = studies || caseStudies
     const searchTerms = query.toLowerCase().split(' ')
-    return studiesToSearch.filter(study => {
+    return studiesToSearch.filter((study: any) => {
       const searchableText = `${study.title} ${study.description} ${study.category} ${study.clientName || ''}`.toLowerCase()
       return searchTerms.every(term => searchableText.includes(term))
     })
   },
   
   // Sort case studies
-  sortCaseStudies: (studies?: typeof caseStudies, sortBy: 'title' | 'category' | 'client' = 'title') => {
+  sortCaseStudies: (studies?: any[], sortBy: 'title' | 'category' | 'client' = 'title') => {
     const studiesToSort = studies || caseStudies
     return [...studiesToSort].sort((a, b) => {
       switch (sortBy) {
@@ -184,8 +192,8 @@ export const caseStudyPerformance = {
 export const caseStudyAnalytics = {
   // Track case study view
   trackView: (caseStudyId: string) => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'case_study_view', {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'case_study_view', {
         case_study_id: caseStudyId,
         event_category: 'Case Studies',
         event_label: caseStudyId
@@ -195,8 +203,8 @@ export const caseStudyAnalytics = {
   
   // Track case study interaction
   trackInteraction: (caseStudyId: string, action: string) => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'case_study_interaction', {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'case_study_interaction', {
         case_study_id: caseStudyId,
         action: action,
         event_category: 'Case Studies'
@@ -206,8 +214,8 @@ export const caseStudyAnalytics = {
   
   // Track filter usage
   trackFilter: (category: string) => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'case_study_filter', {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'case_study_filter', {
         filter_category: category,
         event_category: 'Case Studies'
       })
