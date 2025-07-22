@@ -32,7 +32,7 @@ export function KeywordsClient({ initialKeywords, initialStats }: KeywordsClient
   const { toast } = useToast()
 
   // Filter keywords based on user email
-  const userKeywords = keywords.filter(keyword => keyword.gmail === user?.email)
+  const userKeywords = keywords.filter(keyword => keyword.email_user === user?.email)
 
   // Apply search and filters
   const filteredKeywords = userKeywords.filter(keyword => {

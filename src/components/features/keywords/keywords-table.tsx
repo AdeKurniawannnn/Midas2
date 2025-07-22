@@ -60,15 +60,17 @@ export function KeywordsTable({
     }
   }
 
-  const getPriorityBadge = (priority: number) => {
-    const colors = {
-      1: 'bg-blue-100 text-blue-800',
-      2: 'bg-yellow-100 text-yellow-800',
-      3: 'bg-orange-100 text-orange-800',
-      4: 'bg-red-100 text-red-800',
-      5: 'bg-purple-100 text-purple-800'
+  const getPriorityBadge = (priority: string) => {
+    const priorityMap: { [key: string]: { color: string; label: string } } = {
+      'low': { color: 'bg-blue-100 text-blue-800', label: 'Low' },
+      'medium': { color: 'bg-yellow-100 text-yellow-800', label: 'Medium' },
+      'high': { color: 'bg-orange-100 text-orange-800', label: 'High' },
+      'urgent': { color: 'bg-red-100 text-red-800', label: 'Urgent' },
+      'critical': { color: 'bg-purple-100 text-purple-800', label: 'Critical' }
     }
-    return <Badge variant="secondary" className={colors[priority as keyof typeof colors]}>{priority}</Badge>
+    
+    const priorityInfo = priorityMap[priority.toLowerCase()] || { color: 'bg-gray-100 text-gray-800', label: priority }
+    return <Badge variant="secondary" className={priorityInfo.color}>{priorityInfo.label}</Badge>
   }
 
   const handleEdit = (keyword: Keyword) => {

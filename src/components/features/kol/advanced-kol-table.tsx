@@ -1670,68 +1670,55 @@ export function AdvancedKOLTable({
         </div>
       </div>
 
-      {/* Enhanced responsive pagination with virtual scrolling info */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4">
-        <div className="text-sm text-muted-foreground text-center sm:text-left">
-          {enableVirtualScrolling ? (
-            <div className="flex items-center gap-2">
-              <span>Showing {table.getFilteredRowModel().rows.length} of {filteredData.length} KOL records</span>
-              <Badge variant="secondary" className="text-xs">
-                Virtual Scrolling
-              </Badge>
-            </div>
-          ) : (
-            <span>Showing {table.getFilteredRowModel().rows.length} of {filteredData.length} KOL records</span>
-          )}
+      {/* Clean pagination */}
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          Showing {table.getFilteredRowModel().rows.length} of {filteredData.length} KOL records
         </div>
-        {!enableVirtualScrolling && (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <div className="flex items-center justify-center gap-2">
-              <AnimatedButton
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-                animationType="hover"
-                className="hover:bg-primary hover:text-primary-foreground transition-colors"
-                aria-label="Go to previous page"
-              >
-                <ChevronLeftIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Previous</span>
-              </AnimatedButton>
-            
-            <div className="flex items-center space-x-2 text-sm">
-              <span className="hidden sm:inline">Page</span>
-              <Input
-                type="number"
-                value={pageInput !== '' ? pageInput : (table.getState().pagination.pageIndex + 1)}
-                onChange={(e) => handlePageInputChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onBlur={() => setPageInput('')}
-                onFocus={() => setPageInput('')}
-                className="w-16 h-8 text-center"
-                min="1"
-                max={table.getPageCount()}
-                aria-label="Page number"
-              />
-              <span>of {table.getPageCount()}</span>
-            </div>
-
-            <AnimatedButton
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              animationType="hover"
-              className="hover:bg-primary hover:text-primary-foreground transition-colors"
-              aria-label="Go to next page"
-            >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRightIcon className="h-4 w-4" />
-            </AnimatedButton>
+        <div className="flex items-center space-x-2">
+          <AnimatedButton
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            animationType="hover"
+            className="hover:bg-blue-100 hover:text-blue-600"
+            aria-label="Go to previous page"
+          >
+            <ChevronLeftIcon className="h-4 w-4" />
+            Previous
+          </AnimatedButton>
+          
+          <div className="flex items-center space-x-2 text-sm">
+            <span>Page</span>
+            <Input
+              type="number"
+              value={pageInput !== '' ? pageInput : (table.getState().pagination.pageIndex + 1)}
+              onChange={(e) => handlePageInputChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={() => setPageInput('')}
+              onFocus={() => setPageInput('')}
+              className="w-16 h-8 text-center"
+              min="1"
+              max={table.getPageCount()}
+              aria-label="Page number"
+            />
+            <span>of {table.getPageCount()}</span>
           </div>
+
+          <AnimatedButton
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            animationType="hover"
+            className="hover:bg-blue-100 hover:text-blue-600"
+            aria-label="Go to next page"
+          >
+            Next
+            <ChevronRightIcon className="h-4 w-4" />
+          </AnimatedButton>
         </div>
-        )}
       </div>
     </div>
   )

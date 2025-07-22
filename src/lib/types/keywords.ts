@@ -6,11 +6,10 @@ export interface Keyword {
   description?: string
   category: string
   status: 'active' | 'inactive' | 'archived'
-  priority: number
+  priority: string
   created_at: string
   updated_at: string
-  user_id: string
-  gmail: string
+  email_user: string
 }
 
 export interface KeywordInstagramAssignment {
@@ -18,8 +17,7 @@ export interface KeywordInstagramAssignment {
   keyword_id: number
   instagram_id: number
   assigned_at: string
-  user_id: string
-  gmail: string
+  email_user: string
 }
 
 export interface KeywordGoogleMapsAssignment {
@@ -27,8 +25,7 @@ export interface KeywordGoogleMapsAssignment {
   keyword_id: number
   google_maps_id: number
   assigned_at: string
-  user_id: string
-  gmail: string
+  email_user: string
 }
 
 export interface KeywordScrapingJob {
@@ -41,8 +38,7 @@ export interface KeywordScrapingJob {
   completed_at?: string
   error_message?: string
   created_at: string
-  user_id: string
-  gmail: string
+  email_user: string
 }
 
 // Form types for keyword management
@@ -50,8 +46,12 @@ export interface KeywordFormData {
   keyword: string
   description?: string
   category: string
-  priority: number
+  priority: string
   status: 'active' | 'inactive' | 'archived'
+  currentUser?: {
+    id: string
+    email: string
+  }
 }
 
 export interface KeywordWithAssignments extends Keyword {

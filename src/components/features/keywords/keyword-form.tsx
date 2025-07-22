@@ -36,11 +36,11 @@ const statusOptions = [
 ]
 
 const priorityOptions = [
-  { value: 1, label: '1 - Low' },
-  { value: 2, label: '2 - Medium' },
-  { value: 3, label: '3 - High' },
-  { value: 4, label: '4 - Very High' },
-  { value: 5, label: '5 - Critical' }
+  { value: '1', label: '1 - Low' },
+  { value: '2', label: '2 - Medium' },
+  { value: '3', label: '3 - High' },
+  { value: '4', label: '4 - Very High' },
+  { value: '5', label: '5 - Critical' }
 ]
 
 export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
@@ -48,7 +48,7 @@ export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
     keyword: initialData?.keyword || '',
     description: initialData?.description || '',
     category: initialData?.category || 'general',
-    priority: initialData?.priority || 1,
+    priority: initialData?.priority || '1',
     status: initialData?.status || 'active'
   })
   
@@ -123,15 +123,15 @@ export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
         <div className="space-y-2">
           <Label htmlFor="priority">Priority</Label>
           <Select
-            value={formData.priority.toString()}
-            onValueChange={(value) => handleChange('priority', parseInt(value))}
+            value={formData.priority}
+            onValueChange={(value) => handleChange('priority', value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
               {priorityOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value.toString()}>
+                <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
               ))}

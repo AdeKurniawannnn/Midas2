@@ -55,6 +55,16 @@ export function QuickAddKeywordModal({ trigger, onKeywordAdded }: QuickAddKeywor
       return
     }
 
+    // Check if user is authenticated
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please login to add keywords",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
       const response = await fetch('/api/keywords', {
@@ -66,8 +76,13 @@ export function QuickAddKeywordModal({ trigger, onKeywordAdded }: QuickAddKeywor
           keyword: formData.keyword.trim(),
           description: formData.description.trim(),
           category: formData.category,
-          priority: 1,
-          status: 'active'
+          priority: '1',
+          status: 'active',
+          // Send current user data
+          currentUser: {
+            id: user.id,
+            email: user.email
+          }
         })
       })
 
