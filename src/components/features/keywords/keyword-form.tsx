@@ -1,16 +1,18 @@
 "use client"
 
 import { useState } from "react"
+import { useAuth } from "@/lib/providers/AuthProvider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/components/ui/use-toast"
 import { Keyword, KeywordFormData } from "@/lib/types/keywords"
 
 interface KeywordFormProps {
   initialData?: Keyword
-  onSubmit: (data: KeywordFormData) => void
+  onSubmit: (data: KeywordFormData) => Promise<void>
 }
 
 const categories = [
@@ -53,6 +55,8 @@ export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
   })
   
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { user } = useAuth()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,9 +65,45 @@ export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
       return
     }
 
+    // Check if user is authenticated
+    if (!user || !user.email) {
+      toast({
+        title: "Error",
+        description: "Please login to add keywords",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      await onSubmit(formData)
+      // Include current user data in the form submission
+      const formDataWithUser = {
+        ...formData,
+        currentUser: {
+          id: user.id || '',
+          email: user.email
+        }
+      }
+      await onSubmit(formDataWithUser)
+      
+      // Reset form on successful submission (for add mode)
+      if (!initialData) {
+        setFormData({
+          keyword: '',
+          description: '',
+          category: 'general',
+          priority: '1',
+          status: 'active'
+        })
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save keyword",
+        variant: "destructive"
+      })
     } finally {
       setIsSubmitting(false)
     }
