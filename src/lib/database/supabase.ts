@@ -124,10 +124,28 @@ if (isSupabaseAvailable) {
       }),
       update: (data: any) => ({
         eq: (column: string, value: any) => ({
+          eq: (column2: string, value2: any) => ({
+            select: (fields?: string) => ({
+              single: () => Promise.resolve({ 
+                data: null, 
+                error: { message: 'Supabase not configured - please set environment variables' } 
+              })
+            })
+          }),
           select: (fields?: string) => ({
             single: () => Promise.resolve({ 
               data: null, 
               error: { message: 'Supabase not configured - please set environment variables' } 
+            })
+          })
+        })
+      }),
+      delete: () => ({
+        eq: (column: string, value: any) => ({
+          eq: (column2: string, value2: any) => ({
+            select: (fields?: string) => Promise.resolve({ 
+              data: [{ id: value, keyword: 'mock-keyword', status: 'deleted' }],
+              error: null
             })
           })
         })

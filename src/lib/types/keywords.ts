@@ -8,7 +8,6 @@ export interface Keyword {
   status: 'active' | 'inactive' | 'archived'
   priority: string
   created_at: string
-  updated_at: string
   email_user: string
 }
 
@@ -73,7 +72,7 @@ export interface KeywordFilters {
   category?: string
   status?: 'active' | 'inactive' | 'archived'
   priority?: number
-  sortBy?: 'keyword' | 'created_at' | 'updated_at' | 'priority'
+  sortBy?: 'keyword' | 'created_at' | 'priority'
   sortOrder?: 'asc' | 'desc'
 }
 

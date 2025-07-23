@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { KeywordForm } from "@/components/features/keywords/keyword-form"
 import { Edit, Trash2, MoreVertical, Play } from "lucide-react"
 import { format } from "date-fns"
@@ -30,6 +31,7 @@ export function KeywordsTable({
   isLoading
 }: KeywordsTableProps) {
   const [editingKeyword, setEditingKeyword] = useState<Keyword | null>(null)
+  const [deletingKeyword, setDeletingKeyword] = useState<Keyword | null>(null)
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -77,10 +79,38 @@ export function KeywordsTable({
     setEditingKeyword(keyword)
   }
 
-  const handleUpdate = (data: any) => {
+  const handleCloseDialog = () => {
+    setEditingKeyword(null)
+    // Auto-refresh when dialog is closed to ensure fresh data
+    setTimeout(() => {
+      window.location.reload()
+    }, 500) // Short delay to allow dialog close animation
+  }
+
+  const handleDeleteClick = (keyword: Keyword) => {
+    setDeletingKeyword(keyword)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (deletingKeyword) {
+      await onDelete(deletingKeyword.id)
+      setDeletingKeyword(null)
+    }
+  }
+
+  const handleCancelDelete = () => {
+    setDeletingKeyword(null)
+  }
+
+  const handleUpdate = async (data: any) => {
     if (editingKeyword) {
-      onUpdate(editingKeyword.id, data)
-      setEditingKeyword(null)
+      try {
+        await onUpdate(editingKeyword.id, data)
+        setEditingKeyword(null) // Close dialog on successful update
+      } catch (error) {
+        // Error is handled by the form component
+        console.error('Update failed:', error)
+      }
     }
   }
 
@@ -167,7 +197,10 @@ export function KeywordsTable({
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDelete(keyword.id)}>
+                    <DropdownMenuItem 
+                      onClick={() => handleDeleteClick(keyword)}
+                      className="text-red-600 focus:text-red-600"
+                    >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete
                     </DropdownMenuItem>
@@ -180,10 +213,13 @@ export function KeywordsTable({
       </Table>
 
       {/* Edit Dialog */}
-      <Dialog open={!!editingKeyword} onOpenChange={() => setEditingKeyword(null)}>
+      <Dialog open={!!editingKeyword} onOpenChange={handleCloseDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Keyword</DialogTitle>
+            <DialogDescription>
+              Update the keyword information including name, description, category, priority, and status.
+            </DialogDescription>
           </DialogHeader>
           {editingKeyword && (
             <KeywordForm
@@ -193,6 +229,30 @@ export function KeywordsTable({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingKeyword} onOpenChange={handleCancelDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the keyword 
+              &quot;{deletingKeyword?.keyword}&quot; and remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

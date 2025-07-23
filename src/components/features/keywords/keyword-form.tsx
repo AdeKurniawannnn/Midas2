@@ -85,9 +85,16 @@ export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
           email: user.email
         }
       }
+      
       await onSubmit(formDataWithUser)
       
-      // Reset form on successful submission (for add mode)
+      // Only show success and reset if we reach this point (no error thrown)
+      toast({
+        title: "Success",
+        description: initialData ? "Keyword updated successfully" : "Keyword added successfully",
+      })
+      
+      // Reset form only for add mode (not update mode)
       if (!initialData) {
         setFormData({
           keyword: '',
@@ -97,6 +104,7 @@ export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
           status: 'active'
         })
       }
+      
     } catch (error) {
       console.error('Error submitting form:', error)
       toast({
@@ -104,6 +112,7 @@ export function KeywordForm({ initialData, onSubmit }: KeywordFormProps) {
         description: error instanceof Error ? error.message : "Failed to save keyword",
         variant: "destructive"
       })
+      throw error // Re-throw to let parent component handle it
     } finally {
       setIsSubmitting(false)
     }
