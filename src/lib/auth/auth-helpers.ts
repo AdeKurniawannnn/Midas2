@@ -192,7 +192,28 @@ export const authHelpers = {
 
       console.log('✅ Input validation passed')
 
-      // 2. Find user by email
+      // 2. DUMMY AUTHENTICATION - Check for test credentials
+      if (loginData.email.toLowerCase() === 'test@gmail.com' && loginData.password === 'Test123') {
+        console.log('🎯 Dummy authentication successful for test user')
+        
+        // Return dummy user data
+        const dummyUser = {
+          id: 'dummy-test-user-001',
+          nama_lengkap: 'Test User',
+          email: 'test@gmail.com',
+          perusahaan: 'MIDAS Development',
+          no_telepon: '+62 812-3456-7890',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          last_login: new Date().toISOString()
+        }
+        
+        console.log('✅ Dummy login successful for user:', dummyUser.email)
+        return { success: true, data: dummyUser }
+      }
+
+      // 3. REAL DATABASE AUTHENTICATION (fallback)
       console.log('🔍 Looking for user with email:', loginData.email.toLowerCase())
       const { data: users, error: userError } = await supabase
         .from('Mida_Login')
@@ -214,7 +235,7 @@ export const authHelpers = {
       const user = users[0]
       console.log('✅ User found:', { id: user.id, email: user.email, status: user.status })
 
-      // 3. Verify password
+      // 4. Verify password
       console.log('🔐 Verifying password...')
       const isPasswordValid = await authHelpers.verifyPassword(loginData.password, user.password)
       
@@ -225,7 +246,7 @@ export const authHelpers = {
 
       console.log('✅ Password verified successfully')
 
-      // 4. Update last login
+      // 5. Update last login
       console.log('📝 Updating last login timestamp...')
       const { error: updateError } = await supabase
         .from('Mida_Login')
@@ -242,7 +263,7 @@ export const authHelpers = {
         console.log('✅ Last login updated successfully')
       }
 
-      // 5. Return user data (exclude password)
+      // 6. Return user data (exclude password)
       const { password, ...userWithoutPassword } = user
       console.log('✅ Login successful for user:', userWithoutPassword.email)
       

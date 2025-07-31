@@ -49,16 +49,7 @@ export function LoginModal({ children, onSuccess, prefilledEmail }: LoginModalPr
     }
   }, [prefilledEmail, registeredEmail, formData.email])
 
-  // Auto-fill development credentials saat modal dibuka
-  useEffect(() => {
-    if (isOpen && process.env.NODE_ENV === 'development') {
-      // Auto-fill dengan test credentials untuk development
-      setFormData({
-        email: "test@gmail.com",
-        password: "Test123"
-      })
-    }
-  }, [isOpen])
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -164,15 +155,6 @@ export function LoginModal({ children, onSuccess, prefilledEmail }: LoginModalPr
           <DialogDescription className="text-center text-muted-foreground">
             Masuk ke akun MIDAS Anda
           </DialogDescription>
-          
-          {/* Development Mode Indicator */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="bg-yellow-100 border border-yellow-300 rounded-md p-2 mt-2">
-              <p className="text-xs text-yellow-800 text-center">
-                🚀 <strong>Development Mode:</strong> Auto-fill enabled
-              </p>
-            </div>
-          )}
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -236,45 +218,19 @@ export function LoginModal({ children, onSuccess, prefilledEmail }: LoginModalPr
             </Button>
           </div>
           
-          <div className="space-y-2">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Masuk...
-                </>
-              ) : (
-                <>
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Login
-                </>
-              )}
-            </Button>
-            
-            {/* Quick Login Button untuk Development */}
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-              disabled={isLoading}
-              onClick={() => {
-                setFormData({
-                  email: "test@gmail.com",
-                  password: "Test123"
-                })
-                // Auto submit setelah 100ms
-                setTimeout(() => {
-                  const form = document.querySelector('form')
-                  if (form) {
-                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true })
-                    form.dispatchEvent(submitEvent)
-                  }
-                }, 100)
-              }}
-            >
-              🚀 Quick Login (test@gmail.com)
-            </Button>
-          </div>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Masuk...
+              </>
+            ) : (
+              <>
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+              </>
+            )}
+          </Button>
           
           <div className="text-center text-sm text-muted-foreground">
             Belum punya akun?{" "}
